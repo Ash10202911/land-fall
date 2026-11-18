@@ -1,7 +1,7 @@
 import "server-only";
 import { appUrl } from "@/lib/env";
 import { sendEmail } from "@/lib/email";
-import { planAwardEmails, planNewQuoteEmails } from "@/lib/notification-plan";
+import { planAwardEmails, planCancelEmails, planNewQuoteEmails } from "@/lib/notification-plan";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type One<T> = T | T[] | null;
@@ -41,10 +41,21 @@ export async function notifyNewQuote(args: { jobId: string; quoteId: string }): 
     if (!job?.posterEmail) return;
     const { data } = await admin
       .from("quotes")
-      .select("company:companies(name)")
+      .select("company_id, company:companies(name)")
       .eq("id", args.quoteId)
       .single();
-    const quoterCompany = first((data as unknown as { company: One<{ name: string }> } | null)?.company ?? null)?.name ?? "A forwarder";
+    const row = data as unknown as { company_id: string; company: One<{ name: string }> } | null;
+    if (!row) return;
+
+    // Debounce: a company that withdraws and resubmits must not email the poster again each time.
+    const { count } = await admin
+      .from("quotes")
+      .select("id", { count: "exact", head: true })
+      .eq("job_id", args.jobId)
+      .eq("company_id", row.company_id);
+    if ((count ?? 0) > 1) return;
+
+    const quoterCompany = first(row.company)?.name ?? "A forwarder";
 
     const emails = planNewQuoteEmails({
       baseUrl: appUrl(),
@@ -99,5 +110,36 @@ export async function notifyAward(args: { jobId: string; winningQuoteId: string 
     await Promise.all(emails.map((m) => sendEmail(m)));
   } catch {
     console.error("[notifications] award emails failed");
+  }
+}
+
+/** Tells every company that had a live quote that the poster cancelled the job. Never throws. */
+export async function notifyJobCancelled(args: { jobId: string }): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    if (!admin) return;
+    const job = await loadRoute(admin, args.jobId);
+    if (!job) return;
+    const { data: jobRow } = await admin.from("jobs").select("status").eq("id", args.jobId).single();
+    if (jobRow?.status !== "cancelled") return;
+
+    const { data } = await admin
+      .from("quotes")
+      .select("company:companies(name), author:profiles!created_by(email)")
+      .eq("job_id", args.jobId)
+      .eq("status", "lost");
+    const rows = (data ?? []) as unknown as { company: One<{ name: string }>; author: One<{ email: string }> }[];
+    const quoters = rows.map((r) => ({ email: first(r.author)?.email ?? "", company: first(r.company)?.name ?? "" }));
+
+    const emails = planCancelEmails({
+      baseUrl: appUrl(),
+      jobId: args.jobId,
+      route: job.route,
+      posterCompany: job.posterCompany,
+      quoters,
+    });
+    await Promise.all(emails.map((m) => sendEmail(m)));
+  } catch {
+    console.error("[notifications] cancel emails failed");
   }
 }

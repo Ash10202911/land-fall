@@ -83,3 +83,34 @@ export function checkJobDates(
   if (Number.isNaN(ready.getTime())) errors.readyDate = "Enter a valid ready date";
   return errors;
 }
+
+/** Fields a poster may change after posting (cargo and ready date lock once quotes exist). */
+export const jobEditSchema = z.object({
+  cargoDescription: z
+    .string()
+    .trim()
+    .min(2, "Describe the cargo")
+    .max(1000, "Cargo description must be 1000 characters or fewer"),
+  readyDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter the cargo ready date"),
+  deadlineDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter the quote deadline date"),
+  deadlineTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Enter the quote deadline time"),
+  notes: z.preprocess(
+    emptyToUndefined,
+    z.string().trim().max(2000, "Notes must be 2000 characters or fewer").optional(),
+  ),
+});
+
+/** The deadline can only move later, and must be in the future. Returns field errors. */
+export function checkDeadlineExtension(
+  input: { deadlineDate: string; deadlineTime: string },
+  currentDeadlineIso: string,
+  now = new Date(),
+): Record<string, string> {
+  const next = deadlineToDate(input.deadlineDate, input.deadlineTime);
+  if (Number.isNaN(next.getTime())) return { deadlineDate: "Enter a valid quote deadline" };
+  if (next.getTime() <= now.getTime()) return { deadlineDate: "The quote deadline must be in the future" };
+  if (next.getTime() < new Date(currentDeadlineIso).getTime()) {
+    return { deadlineDate: "The deadline can only be extended, not shortened" };
+  }
+  return {};
+}

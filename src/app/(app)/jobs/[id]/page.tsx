@@ -29,10 +29,10 @@ export default async function JobDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ edit?: string; award_error?: string }>;
+  searchParams: Promise<{ edit?: string; award_error?: string; job_error?: string }>;
 }) {
   const { id } = await params;
-  const { edit, award_error: awardError } = await searchParams;
+  const { edit, award_error: awardError, job_error: jobError } = await searchParams;
   if (!UUID.test(id)) notFound();
 
   const me = await requireMember();
@@ -58,6 +58,8 @@ export default async function JobDetailPage({
         <div className="flex flex-wrap items-center gap-2">
           {job.status === "awarded" ? (
             <Badge tone="success">Awarded</Badge>
+          ) : job.status === "cancelled" ? (
+            <Badge tone="danger">Cancelled</Badge>
           ) : closed ? (
             <Badge tone="neutral">Closed</Badge>
           ) : (
@@ -71,6 +73,18 @@ export default async function JobDetailPage({
         </div>
         <JobFlags job={job} />
       </div>
+
+      {job.status === "cancelled" ? (
+        <p role="status" className="rounded-md bg-muted p-3 text-sm">
+          The poster cancelled this job. It can no longer be quoted.
+        </p>
+      ) : null}
+
+      {jobError ? (
+        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          We could not cancel this job. It may already be awarded or closed.
+        </p>
+      ) : null}
 
       {closed && job.status === "open" ? (
         <p role="status" className="rounded-xl bg-muted p-3 text-sm">

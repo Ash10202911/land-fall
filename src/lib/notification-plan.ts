@@ -57,3 +57,28 @@ export function planAwardEmails(args: {
   }
   return emails;
 }
+
+/** A poster cancelled their job: every company that had a live quote is told. Duplicates are removed. */
+export function planCancelEmails(args: {
+  baseUrl: string;
+  jobId: string;
+  route: string;
+  posterCompany: string;
+  quoters: Person[];
+}): EmailMessage[] {
+  const { baseUrl, jobId, route, posterCompany, quoters } = args;
+  const url = jobUrl(baseUrl, jobId);
+  const seen = new Set<string>();
+  const emails: EmailMessage[] = [];
+  for (const q of quoters) {
+    const key = q.email.toLowerCase();
+    if (!q.email || seen.has(key)) continue;
+    seen.add(key);
+    emails.push({
+      to: q.email,
+      subject: `Job cancelled: ${route}`,
+      text: `${posterCompany} cancelled the job ${route}. Your quote was not selected. Thank you for quoting.\n\nView the job: ${url}`,
+    });
+  }
+  return emails;
+}

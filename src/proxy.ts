@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/sign-in", "/auth/callback", "/manifest.webmanifest"];
+const PUBLIC_PATHS = ["/sign-in", "/auth/callback", "/demo", "/manifest.webmanifest"];
 
 /**
  * Refreshes the Supabase session cookie and sends signed-out visitors to /sign-in.

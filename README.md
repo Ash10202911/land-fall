@@ -20,6 +20,7 @@ Trust is the product: quotes are sealed and contact details are hidden, and both
 | F6 | Compare quotes as stacked cards, award (Verified companies only), contact handoff with a bank-details warning |
 | F7 | `/admin` (admins only, others get a 404): verify and suspend companies |
 | F8 | Email on new quote, quote won, quote lost; console fallback when no email key is set |
+| Next | Cancel a job, edit notes and extend the deadline (cargo locks once quotes exist), "Repeat last job", admins can post on behalf of a company, admin company search and a change log, friendly error pages |
 
 ## Local setup
 
@@ -97,6 +98,15 @@ The founder and GitHub Actions deploy; development agents do not.
 3. **Vercel**: import the GitHub repo and set the environment variables above for Production and Preview. Vercel deploys `main` automatically.
 4. **Supabase URL configuration**: set the Site URL to your Vercel URL and add `https://<your-domain>/auth/callback` (and `http://localhost:3000/auth/callback` for local use) to the redirect URLs.
 5. **Make yourself admin**: in Supabase, Table Editor, `profiles`, set `is_admin` to true on your row. Admins verify companies at `/admin`.
+
+## Running it in production
+
+- **Migrations**: `db-migrate.yml` pushes `supabase/migrations/` on merge to `main` when the three Supabase secrets exist. Without them it skips with a warning instead of failing. Applying a migration another way (for example the Supabase connector) is fine as long as the version in `supabase_migrations.schema_migrations` matches the file name.
+- **Auth settings** (Supabase dashboard, Authentication): set the Site URL and redirect URLs, and set rate limits for sign-ins and emails. The values in `supabase/config.toml` are for local use only.
+- **Backups**: turn on daily backups (Pro plan) or schedule a `pg_dump`; test a restore once.
+- **Staging**: create a second Supabase project and a Vercel preview environment pointing at it, so tests and experiments never touch production data.
+- **Monitoring**: enable Vercel and Supabase alerts for 5xx errors and database CPU. Error pages show only a reference digest, never internal details or personal data.
+- **Abuse limits in the database**: at most 5 quote attempts per company per job, 20 jobs per company per 24 hours, and no quote validity date in the past. Admin maintenance through the service role is not limited.
 
 ## How the trust rules are enforced
 

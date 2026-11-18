@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Pencil } from "lucide-react";
+import { CancelJobButton } from "./cancel-button";
+import { cancelJob } from "./job-actions";
 import { Badge, Card, EmptyState } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import type { Company } from "@/lib/auth";
@@ -90,6 +92,19 @@ export async function PosterSection({
       <h2 id="quotes-heading" className="font-semibold">
         Quotes ({quotes.length})
       </h2>
+
+      {open && !closedForQuotes ? (
+        <div className="flex flex-wrap items-start gap-2">
+          <Link
+            href={`/jobs/${job.id}/edit`}
+            className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium"
+          >
+            <Pencil className="h-4 w-4" aria-hidden />
+            Edit job
+          </Link>
+          <CancelJobButton action={cancelJob.bind(null, job.id)} />
+        </div>
+      ) : null}
 
       {awardError && ERRORS[awardError] ? (
         <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">

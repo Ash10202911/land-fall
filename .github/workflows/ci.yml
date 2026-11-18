@@ -23,10 +23,41 @@ jobs:
         with:
           version: latest
 
-      - run: npx supabase start
+      # Docker registries rate-limit image pulls now and then, so retry a few times.
+      - name: Start local Supabase
+        run: |
+          for attempt in 1 2 3; do
+            if npx supabase start; then exit 0; fi
+            echo "supabase start failed (attempt $attempt), retrying in 30s"
+            npx supabase stop --no-backup || true
+            sleep 30
+          done
+          exit 1
+
       - run: npm run test:rls
 
       - run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+
+      # End-to-end journey on an iPhone-size viewport against the local stack.
+      - name: Write local env for the app
+        run: |
+          npx supabase status -o env > /tmp/supabase.env
+          get() { grep "^$1=" /tmp/supabase.env | cut -d= -f2- | tr -d '"'; }
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$(get API_URL)"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(get ANON_KEY)"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$(get SERVICE_ROLE_KEY)"
+            echo "NEXT_PUBLIC_APP_URL=http://localhost:3000"
+          } > .env.local
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results/
+          if-no-files-found: ignore

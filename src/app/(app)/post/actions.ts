@@ -45,13 +45,17 @@ export async function postJob(_prev: JobFormState, formData: FormData): Promise<
   const dateErrors = checkJobDates(parsed.data);
   if (Object.keys(dateErrors).length > 0) return { errors: dateErrors };
 
+  // Admins may post on behalf of another active company; the database enforces this too.
+  const onBehalf = String(formData.get("onBehalfOf") ?? "");
+  const postingFor = me.is_admin && /^[0-9a-f-]{36}$/i.test(onBehalf) ? onBehalf : me.company.id;
+
   const v = parsed.data;
   const isFcl = v.mode === "FCL";
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("jobs")
     .insert({
-      company_id: me.company.id,
+      company_id: postingFor,
       created_by: me.id,
       direction: v.direction,
       incoterm: v.incoterm,

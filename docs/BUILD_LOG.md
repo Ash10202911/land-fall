@@ -31,6 +31,21 @@ Written by Claude Code during `/build-core`.
 - Not done (outside the spec, recommended next): app-level rate limiting and email debounce on quote withdraw and resubmit; an append-only audit log for admin trust and status changes; blocking an admin from verifying their own company; a DB check that valid_until is not in the past.
 - Production note: Supabase auth rate limits in supabase/config.toml are local values; set them in the hosted project.
 
+## Next steps build (after the first release)
+| Item | Status | Notes |
+|---|---|---|
+| Migration pipeline | done | db-migrate skips with a warning when secrets are missing; production history versions now match the file names |
+| Cancel job, edit job | done | Migration 20261119000400: cancel_job and update_job (poster only; cargo and ready date lock once a live quote exists; deadline extend only). Live quotes become lost on cancel and quoters are emailed |
+| Admin self-change guard | done | Trigger blocks an admin changing trust level or status of their own company (API users only) |
+| Audit log | done | admin_audit_log written by trigger, readable by admins, shown on /admin |
+| DB guards and limits | done | No past valid_until; max 5 quote attempts per company per job; max 20 jobs per company per 24h (non-admin) |
+| Email debounce | done | Resubmitting after withdrawing does not email the poster again |
+| S1 admin posts for a company, S2 repeat last job | done | jobs_insert policy allows admin for active companies |
+| Error pages, skip link, admin search | done | |
+| Playwright in CI, supabase start retry | done | CI runs the iPhone journeys |
+| Backups, staging, monitoring, Supabase auth rate limits | not done | Dashboard settings; steps in README "Running it in production" |
+| Sign-in rate limiting in the app | not done | Relies on Supabase Auth limits (set in the hosted project) |
+
 ## Definition of done
 | # | Item | Evidence | Pass |
 |---|---|---|---|

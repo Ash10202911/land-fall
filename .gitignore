@@ -45,3 +45,15 @@ coverage/
 playwright-report/
 test-results/
 supabase/.temp/
+
+# Next.js / env
+.next/
+out/
+.env*
+!.env.example
+next-env.d.ts
+test-results/
+playwright-report/
+supabase/.temp/
+supabase/.branches/
+supabase-start.log

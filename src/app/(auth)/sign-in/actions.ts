@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { appUrl } from "@/lib/env";
 import { fieldErrors, signInSchema, type FormState } from "@/lib/validation/auth";
@@ -9,7 +8,7 @@ export async function requestMagicLink(_prev: FormState, formData: FormData): Pr
   const parsed = signInSchema.safeParse({ email: formData.get("email") });
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
 
-  const origin = (await headers()).get("origin") ?? appUrl();
+  const origin = appUrl();
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,

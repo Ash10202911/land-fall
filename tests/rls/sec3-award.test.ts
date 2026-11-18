@@ -126,3 +126,23 @@ describe("SEC-3 award rules", () => {
     expect(error).not.toBeNull();
   });
 });
+
+describe("SEC-3 award: quoting company must still be active", () => {
+  it("rejects awarding a quote whose company was suspended after quoting", async () => {
+    const poster = await makeUser({ role: "agent", trust: "verified" });
+    const quoter = await makeUser();
+    const jobId = await makeJob(poster);
+    const quoteId = await mustSubmitQuote(quoter, jobId);
+    await admin.from("companies").update({ status: "suspended" }).eq("id", quoter.companyId);
+    const { error } = await poster.client.rpc("award_quote", { p_quote_id: quoteId });
+    expect(error).not.toBeNull();
+    const job = await admin.from("jobs").select("status").eq("id", jobId).single();
+    expect(job.data?.status).toBe("open");
+  });
+
+  it("gives the same error for a missing quote as for one the caller may not award", async () => {
+    const poster = await makeUser({ role: "agent", trust: "verified" });
+    const missing = await poster.client.rpc("award_quote", { p_quote_id: "00000000-0000-4000-8000-000000000000" });
+    expect(missing.error?.message).toMatch(/only the job poster/i);
+  });
+});

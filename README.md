@@ -21,6 +21,7 @@ Trust is the product: quotes are sealed and contact details are hidden, and both
 | F7 | `/admin` (admins only, others get a 404): verify and suspend companies |
 | F8 | Email on new quote, quote won, quote lost; console fallback when no email key is set |
 | Next | Cancel a job, edit notes and extend the deadline (cargo locks once quotes exist), "Repeat last job", admins can post on behalf of a company, admin company search and a change log, friendly error pages |
+| Dashboard | A Dashboard tab: what needs attention, quote and job scorecards, lane demand, and for admins marketplace health and a verification queue. See docs/DASHBOARD.md |
 
 ## Local setup
 

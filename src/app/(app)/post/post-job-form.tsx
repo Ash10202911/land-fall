@@ -15,7 +15,7 @@ import { postJob, type JobFormState } from "./actions";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-4 rounded-lg border border-border bg-card p-4">
+    <fieldset className="space-y-4 rounded-2xl border border-border bg-card p-4">
       <legend className="px-1 text-sm font-semibold">{title}</legend>
       {children}
     </fieldset>

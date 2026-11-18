@@ -17,7 +17,7 @@ export default async function PostPage() {
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Post a job</h1>
       {me.company.status === "suspended" ? (
-        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
           Your company is suspended and cannot post jobs.
         </p>
       ) : (

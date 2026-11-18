@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const fieldBase =
-  "block min-h-11 w-full rounded-md border border-input bg-card px-3 text-base text-foreground placeholder:text-muted-foreground disabled:opacity-60 aria-[invalid=true]:border-destructive";
+  "block min-h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base shadow-[inset_0_1px_0_rgb(17_27_54/0.02)] transition-shadow focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15 text-foreground placeholder:text-muted-foreground disabled:opacity-60 aria-[invalid=true]:border-destructive";
 
 export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(fieldBase, className)} {...props} />;
@@ -20,7 +20,7 @@ export function Select({ className, ...props }: React.SelectHTMLAttributes<HTMLS
 }
 
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cn("mb-1 block text-sm font-medium", className)} {...props} />;
+  return <label className={cn("mb-1.5 block text-sm font-semibold text-foreground/90", className)} {...props} />;
 }
 
 /** A labelled form field with an inline error message. */

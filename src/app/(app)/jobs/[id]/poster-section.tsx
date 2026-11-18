@@ -92,13 +92,13 @@ export async function PosterSection({
       </h2>
 
       {awardError && ERRORS[awardError] ? (
-        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
           {ERRORS[awardError]}
         </p>
       ) : null}
 
       {open && !verifiedActive ? (
-        <div className="rounded-md bg-muted p-3 text-sm">
+        <div className="rounded-xl bg-muted p-3 text-sm">
           <p className="font-medium">Get verified to award</p>
           <p className="text-muted-foreground">
             {company.status === "suspended"

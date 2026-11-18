@@ -73,7 +73,7 @@ export default async function JobDetailPage({
       </div>
 
       {closed && job.status === "open" ? (
-        <p role="status" className="rounded-md bg-muted p-3 text-sm">
+        <p role="status" className="rounded-xl bg-muted p-3 text-sm">
           The quote deadline has passed. This job is closed and can no longer be quoted.
         </p>
       ) : null}

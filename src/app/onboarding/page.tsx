@@ -16,7 +16,7 @@ export default async function OnboardingPage() {
       <p className="mb-6 mt-1 text-sm text-muted-foreground">
         Three quick details. An admin can verify your company later so you can award jobs.
       </p>
-      <div className="rounded-lg border border-border bg-card p-5">
+      <div className="rounded-2xl border border-border bg-card p-5">
         <OnboardingForm />
       </div>
     </main>

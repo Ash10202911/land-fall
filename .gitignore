@@ -31,7 +31,6 @@ pnpm-debug.log*
 # (Keys normally live in ~/.pi, your home dir, outside this repo anyway.)
 .pi/
 
-# Claude Code skill stub (regenerate with: npx skills add vercel-labs/agent-browser)
 .claude/
 
 # Editor / OS
@@ -40,3 +39,10 @@ pnpm-debug.log*
 .vscode/
 *.swp
 Thumbs.db
+# Next.js / Southbound
+.next/
+.vercel/
+coverage/
+playwright-report/
+test-results/
+supabase/.temp/

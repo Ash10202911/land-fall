@@ -31,7 +31,6 @@ pnpm-debug.log*
 # (Keys normally live in ~/.pi, your home dir, outside this repo anyway.)
 .pi/
 
-.claude/
 
 # Editor / OS
 .DS_Store

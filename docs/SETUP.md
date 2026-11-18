@@ -2,7 +2,7 @@
 
 A quote board where overseas agents and ANZ freight forwarders post jobs, send quotes and win business, fast.
 
-This is the core build: sign-in, post a job, sealed quotes, award, contact handoff, admin verification and email notifications. The full spec is in [docs/SPEC.md](docs/SPEC.md).
+This is the core build: sign-in, post a job, sealed quotes, award, contact handoff, admin verification and email notifications. The full requirements are in [REQUIREMENTS.md](../REQUIREMENTS.md) and the build process is in [PROCESS.md](../PROCESS.md).
 
 ## Before the build (about 30 minutes, once)
 
@@ -10,13 +10,11 @@ This is the core build: sign-in, post a job, sealed quotes, award, contact hando
 Node.js 20+, Git, Docker Desktop (running), GitHub CLI (`gh`), Claude Code.
 
 ### 2. GitHub
+The code lives in `Ash10202911/land-fall`.
 ```bash
 gh auth login
-cd southbound-core
-git init -b main
-git add .
-git commit -m "docs: core spec"
-gh repo create southbound --private --source=. --push
+git clone https://github.com/Ash10202911/land-fall
+cd land-fall
 ```
 Then in the repo on GitHub: Settings, Branches, protect `main` (require a pull request).
 
@@ -33,7 +31,7 @@ Repo Settings, Secrets and variables, Actions:
 - `SUPABASE_DB_PASSWORD`
 
 ### 5. Vercel
-1. Sign in with GitHub, Add New Project, import `southbound`.
+1. Sign in with GitHub, Add New Project, import `land-fall`.
 2. Environment Variables (Production and Preview):
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL` (your Vercel URL). Add `RESEND_API_KEY` and `EMAIL_FROM` later for real emails.
    Or use the Supabase integration in the Vercel Marketplace to copy the Supabase keys across.
@@ -41,7 +39,6 @@ Repo Settings, Secrets and variables, Actions:
 
 ## Run the build
 ```bash
-cd southbound-core
 claude
 ```
 Then type:

@@ -48,7 +48,7 @@ export function MyQuote({ quote, jobId, canChange }: { quote: QuoteRow; jobId: s
         <div className="flex flex-wrap gap-2">
           <Link
             href={`/jobs/${jobId}?edit=1`}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md border border-input bg-card px-4 text-sm font-medium hover:bg-muted"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-input bg-card px-4 text-sm font-medium hover:bg-muted"
           >
             <Pencil className="h-4 w-4" aria-hidden />
             Edit quote

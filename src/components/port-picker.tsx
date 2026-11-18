@@ -86,7 +86,7 @@ export function PortPicker({
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-md border border-border bg-card shadow-sm"
+          className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-border bg-card shadow-sm"
         >
           {matches.length === 0 ? (
             <li className="px-3 py-3 text-sm text-muted-foreground">No ports match.</li>

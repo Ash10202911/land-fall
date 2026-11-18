@@ -23,7 +23,7 @@ export function AwardButton({
     );
   }
   return (
-    <form action={action} className="space-y-2 rounded-md bg-muted p-3">
+    <form action={action} className="space-y-2 rounded-xl bg-muted p-3">
       <p className="text-sm">
         Award this job to <strong>{companyName}</strong>? Other quotes will be marked lost and you will both see each
         other&apos;s contact details. This cannot be undone.

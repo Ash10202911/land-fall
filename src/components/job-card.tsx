@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Clock } from "lucide-react";
+import { Clock, Container, Plane } from "lucide-react";
 import { Badge, Card } from "@/components/ui/card";
 import { formatDateTime, isJobClosed } from "@/lib/domain";
 import { cargoSummary, portLabel, type JobRow } from "@/lib/jobs";
@@ -15,9 +15,12 @@ export function JobFlags({ job }: { job: Pick<JobRow, "flag_dg" | "flag_reefer" 
   );
 }
 
+const shortName = (n: string) => n.replace(/\s*\([^)]*\)\s*$/, "");
+
 export function JobCard({ job, quoteCount }: { job: JobRow; quoteCount?: number }) {
   const closed = isJobClosed(job);
   const awarded = job.status === "awarded";
+  const ModeIcon = job.mode === "Air" ? Plane : Container;
   return (
     <Link href={`/jobs/${job.id}`} className="block">
       <Card className="space-y-2 transition-colors hover:bg-muted/40">
@@ -31,20 +34,35 @@ export function JobCard({ job, quoteCount }: { job: JobRow; quoteCount?: number 
             {awarded ? "Awarded" : job.status === "cancelled" ? "Cancelled" : closed ? "Closed" : "Open"}
           </Badge>
         </div>
+
+        {/* Route: origin and destination joined by a dotted line */}
+        <div className="flex items-center gap-3" aria-label={`${job.origin.name} to ${job.destination.name}`}>
+          <p className="min-w-0 flex-1 truncate text-lg font-semibold tracking-tight">{shortName(job.origin.name)}</p>
+          <span className="flex min-w-8 flex-1 items-center" aria-hidden>
+            <span className="h-2 w-2 rounded-full border-2 border-accent" />
+            <span className="h-px flex-1 border-t-2 border-dotted border-input" />
+            <span className="h-2 w-2 rounded-full bg-accent" />
+          </span>
+          <p className="min-w-0 flex-1 truncate text-right text-lg font-semibold tracking-tight">
+            {shortName(job.destination.name)}
+          </p>
+        </div>
+
         <p className="text-sm text-muted-foreground">
-          {job.mode} · {cargoSummary(job)} · {job.incoterm} · {job.direction === "import" ? "Import" : "Export"}
+          {cargoSummary(job)} · {job.incoterm} · {job.direction === "import" ? "Import" : "Export"}
         </p>
         <p className="line-clamp-2 text-sm">{job.cargo_description}</p>
         <JobFlags job={job} />
-        <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>
+
+        <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-3 text-xs text-muted-foreground">
+          <span className="min-w-0 truncate font-medium text-foreground/80">
             {quoteCount === undefined
               ? (job.company?.name ?? "Unknown company")
               : `${quoteCount} ${quoteCount === 1 ? "quote" : "quotes"} received`}
           </span>
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex shrink-0 items-center gap-1">
             <Clock className="h-3 w-3" aria-hidden />
-            Quotes by {formatDateTime(job.deadline_at)}
+            by {formatDateTime(job.deadline_at)}
           </span>
         </div>
       </Card>

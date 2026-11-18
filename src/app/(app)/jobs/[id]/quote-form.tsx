@@ -62,7 +62,7 @@ export function QuoteForm({
     >
       <ul className="space-y-3">
         {lines.map((line, i) => (
-          <li key={i} className="space-y-3 rounded-md border border-border p-3">
+          <li key={i} className="space-y-3 rounded-xl border border-border p-3">
             <Field label={`Charge ${i + 1}`} htmlFor={`charge-${i}`} error={e[`lines.${i}.chargeName`]}>
               <Input
                 id={`charge-${i}`}
@@ -134,7 +134,7 @@ export function QuoteForm({
         </Button>
       ) : null}
 
-      <div className="rounded-md bg-muted p-3 text-sm" aria-live="polite">
+      <div className="rounded-xl bg-muted p-3 text-sm" aria-live="polite">
         <p className="font-medium">Total</p>
         {totals.length === 0 ? (
           <p className="text-muted-foreground">Add an amount to see the total.</p>

@@ -1,23 +1,29 @@
 @import "tailwindcss";
 
-/* Southbound palette: deep navy, restrained teal accent, cool grays. */
+/*
+  Southbound palette ("harbour"): ink navy for structure, electric indigo as the single action colour,
+  a fresh sea-green for trust and success, warm coral reserved for risk. Flat surfaces (no gradients).
+*/
 :root {
-  --background: #f5f7fa;
-  --foreground: #0f1b2d;
+  --background: #f4f6fb;
+  --foreground: #0b1324;
   --card: #ffffff;
-  --card-foreground: #0f1b2d;
-  --muted: #e8edf3;
-  --muted-foreground: #5b6b7f;
-  --border: #d5dde7;
-  --input: #c3cedb;
-  --primary: #0f2a4a;
+  --card-foreground: #0b1324;
+  --muted: #eceff7;
+  --muted-foreground: #5a6683;
+  --border: #e1e6f1;
+  --input: #cdd5e6;
+  --primary: #111b36;
   --primary-foreground: #ffffff;
-  --accent: #0e7c86;
+  --accent: #4259f4;
   --accent-foreground: #ffffff;
-  --destructive: #b42318;
-  --success: #16794c;
-  --warning: #9a6700;
-  --ring: #0e7c86;
+  --accent-soft: #e9ecff;
+  --destructive: #d92d4b;
+  --success: #0f9d73;
+  --warning: #b86a00;
+  --ring: #4259f4;
+  --shadow-card: 0 1px 2px rgb(17 27 54 / 0.04), 0 6px 18px -8px rgb(17 27 54 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(17 27 54 / 0.06), 0 14px 28px -12px rgb(66 89 244 / 0.28);
 }
 
 @theme inline {
@@ -33,11 +39,14 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
 }
 
 html {
@@ -51,7 +60,54 @@ body {
   overflow-x: hidden;
 }
 
+@layer base {
+  h1 {
+    font-size: 1.625rem;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+  }
+  h2 {
+    font-weight: 620;
+    letter-spacing: -0.015em;
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--primary);
+  }
+}
+
 *:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Gentle entrance for page content. Respects reduced motion. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+main > * {
+  animation: rise 0.35s ease-out both;
+}
+main > *:nth-child(2) {
+  animation-delay: 0.04s;
+}
+main > *:nth-child(3) {
+  animation-delay: 0.08s;
+}
+main > *:nth-child(n + 4) {
+  animation-delay: 0.12s;
+}
+@media (prefers-reduced-motion: reduce) {
+  main > * {
+    animation: none;
+  }
 }

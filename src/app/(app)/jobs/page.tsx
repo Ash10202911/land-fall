@@ -14,11 +14,11 @@ export const metadata = { title: "Jobs" };
 function ViewTabs({ view }: { view: "open" | "mine" }) {
   const tab = (active: boolean) =>
     cn(
-      "inline-flex min-h-11 flex-1 items-center justify-center rounded-md px-3 text-sm font-medium",
+      "inline-flex min-h-11 flex-1 items-center justify-center rounded-xl px-3 text-sm font-medium",
       active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted",
     );
   return (
-    <nav aria-label="Jobs view" className="flex gap-1 rounded-lg border border-border bg-card p-1">
+    <nav aria-label="Jobs view" className="flex gap-1 rounded-2xl border border-border bg-card p-1">
       <Link href="/jobs" aria-current={view === "open" ? "page" : undefined} className={tab(view === "open")}>
         Open jobs
       </Link>
@@ -119,7 +119,7 @@ export default async function JobsPage({
           {filtered ? (
             <Link
               href="/jobs"
-              className="inline-flex min-h-11 items-center rounded-md border border-input bg-card px-4 text-sm"
+              className="inline-flex min-h-11 items-center rounded-xl border border-input bg-card px-4 text-sm"
             >
               Clear
             </Link>

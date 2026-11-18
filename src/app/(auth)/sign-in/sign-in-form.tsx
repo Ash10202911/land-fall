@@ -12,7 +12,7 @@ export function SignInForm() {
 
   if (state.ok) {
     return (
-      <div role="status" className="rounded-md bg-accent/10 p-4 text-sm">
+      <div role="status" className="rounded-xl bg-accent-soft p-4 text-sm">
         <p className="font-medium">{state.message}</p>
         <p className="mt-1 text-muted-foreground">
           The link works once and expires soon. You can close this page.

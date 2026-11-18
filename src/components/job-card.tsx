@@ -27,8 +27,8 @@ export function JobCard({ job, quoteCount }: { job: JobRow; quoteCount?: number 
             <ArrowRight className="h-4 w-4 text-muted-foreground" aria-label="to" />
             <span>{job.destination.name}</span>
           </p>
-          <Badge tone={awarded ? "verified" : closed ? "neutral" : "success"}>
-            {awarded ? "Awarded" : closed ? "Closed" : "Open"}
+          <Badge tone={awarded ? "verified" : job.status === "cancelled" ? "danger" : closed ? "neutral" : "success"}>
+            {awarded ? "Awarded" : job.status === "cancelled" ? "Cancelled" : closed ? "Closed" : "Open"}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">

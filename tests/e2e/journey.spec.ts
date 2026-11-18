@@ -53,7 +53,7 @@ test("agent posts, forwarders quote, admin verifies, agent awards, only winner s
   await expect(agent.page.getByRole("navigation", { name: "Main" })).toBeVisible(); // bottom tab bar
   expect(await expectNoHorizontalScroll(agent.page)).toBe(0);
 
-  await agent.page.getByRole("link", { name: "Post" }).click();
+  await agent.page.getByRole("link", { name: "Post", exact: true }).click();
   await expect(agent.page.getByRole("heading", { name: "Post a job" })).toBeVisible();
 
   // a past deadline is rejected with a clear error

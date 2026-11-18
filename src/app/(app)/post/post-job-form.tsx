@@ -22,18 +22,60 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Check({ name, value, label }: { name: string; value?: string; label: string }) {
+export type JobDefaults = {
+  direction: "import" | "export";
+  incoterm: string;
+  mode: "FCL" | "LCL" | "Air";
+  originPortId: number;
+  destinationPortId: number;
+  containerType: string | null;
+  containerQty: number | null;
+  weightKg: number | null;
+  volumeCbm: number | null;
+  cargoDescription: string;
+  services: string[];
+  flagDg: boolean;
+  flagReefer: boolean;
+  flagBmsb: boolean;
+  notes: string | null;
+};
+
+function Check({
+  name,
+  value,
+  label,
+  defaultChecked,
+}: {
+  name: string;
+  value?: string;
+  label: string;
+  defaultChecked?: boolean;
+}) {
   return (
     <label className="flex min-h-11 items-center gap-3 text-sm">
-      <input type="checkbox" name={name} value={value} className="h-5 w-5 accent-[var(--accent)]" />
+      <input
+        type="checkbox"
+        name={name}
+        value={value}
+        defaultChecked={defaultChecked}
+        className="h-5 w-5 accent-[var(--accent)]"
+      />
       {label}
     </label>
   );
 }
 
-export function PostJobForm({ ports }: { ports: Port[] }) {
+export function PostJobForm({
+  ports,
+  defaults,
+  companies,
+}: {
+  ports: Port[];
+  defaults?: JobDefaults;
+  companies?: { id: string; name: string }[];
+}) {
   const [state, action, pending] = useActionState<JobFormState, FormData>(postJob, {});
-  const [mode, setMode] = useState<"FCL" | "LCL" | "Air">("FCL");
+  const [mode, setMode] = useState<"FCL" | "LCL" | "Air">(defaults?.mode ?? "FCL");
   const e = state.errors ?? {};
   const today = new Date().toISOString().slice(0, 10);
 
@@ -47,16 +89,31 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
         startTransition(() => action(data));
       }}
     >
+      {companies ? (
+        <Section title="Admin: post on behalf of">
+          <Field label="Company" htmlFor="onBehalfOf">
+            <Select id="onBehalfOf" name="onBehalfOf" defaultValue="">
+              <option value="">My own company</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </Section>
+      ) : null}
+
       <Section title="Shipment">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Direction" htmlFor="direction" error={e.direction}>
-            <Select id="direction" name="direction" defaultValue="import" aria-invalid={Boolean(e.direction)}>
+            <Select id="direction" name="direction" defaultValue={defaults?.direction ?? "import"} aria-invalid={Boolean(e.direction)}>
               <option value="import">Import to ANZ</option>
               <option value="export">Export from ANZ</option>
             </Select>
           </Field>
           <Field label="Incoterm" htmlFor="incoterm" error={e.incoterm}>
-            <Select id="incoterm" name="incoterm" defaultValue="FOB" aria-invalid={Boolean(e.incoterm)}>
+            <Select id="incoterm" name="incoterm" defaultValue={defaults?.incoterm ?? "FOB"} aria-invalid={Boolean(e.incoterm)}>
               {INCOTERMS.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -79,13 +136,20 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
           </Select>
         </Field>
         <Field label="Origin port" htmlFor="originPortId" error={e.originPortId}>
-          <PortPicker id="originPortId" name="originPortId" ports={ports} invalid={Boolean(e.originPortId)} />
+          <PortPicker
+            id="originPortId"
+            name="originPortId"
+            ports={ports}
+            defaultPortId={defaults?.originPortId}
+            invalid={Boolean(e.originPortId)}
+          />
         </Field>
         <Field label="Destination port" htmlFor="destinationPortId" error={e.destinationPortId}>
           <PortPicker
             id="destinationPortId"
             name="destinationPortId"
             ports={ports}
+            defaultPortId={defaults?.destinationPortId}
             invalid={Boolean(e.destinationPortId)}
           />
         </Field>
@@ -95,7 +159,7 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
         {mode === "FCL" ? (
           <div className="grid grid-cols-2 gap-3">
             <Field label="Container type" htmlFor="containerType" error={e.containerType}>
-              <Select id="containerType" name="containerType" defaultValue="40HC" aria-invalid={Boolean(e.containerType)}>
+              <Select id="containerType" name="containerType" defaultValue={defaults?.containerType ?? "40HC"} aria-invalid={Boolean(e.containerType)}>
                 {CONTAINER_TYPES.map((t) => (
                   <option key={t} value={t}>
                     {t} ({CONTAINER_LABELS[t]})
@@ -110,7 +174,7 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
                 type="number"
                 inputMode="numeric"
                 min={1}
-                defaultValue={1}
+                defaultValue={defaults?.containerQty ?? 1}
                 aria-invalid={Boolean(e.containerQty)}
               />
             </Field>
@@ -121,6 +185,7 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
               <Input
                 id="weightKg"
                 name="weightKg"
+                defaultValue={defaults?.weightKg ?? undefined}
                 type="number"
                 inputMode="decimal"
                 step="any"
@@ -132,6 +197,7 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
               <Input
                 id="volumeCbm"
                 name="volumeCbm"
+                defaultValue={defaults?.volumeCbm ?? undefined}
                 type="number"
                 inputMode="decimal"
                 step="any"
@@ -142,13 +208,17 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
           </div>
         )}
         <Field label="Cargo description" htmlFor="cargoDescription" error={e.cargoDescription}>
-          <Textarea id="cargoDescription" name="cargoDescription" aria-invalid={Boolean(e.cargoDescription)} />
+          <Textarea
+            id="cargoDescription"
+            name="cargoDescription"
+            defaultValue={defaults?.cargoDescription}
+            aria-invalid={Boolean(e.cargoDescription)} />
         </Field>
         <div>
           <p className="mb-1 text-sm font-medium">Cargo flags</p>
-          <Check name="flagDg" label="Dangerous goods" />
-          <Check name="flagReefer" label="Reefer (temperature controlled)" />
-          <Check name="flagBmsb" label="BMSB-risk goods" />
+          <Check name="flagDg" label="Dangerous goods" defaultChecked={defaults?.flagDg} />
+          <Check name="flagReefer" label="Reefer (temperature controlled)" defaultChecked={defaults?.flagReefer} />
+          <Check name="flagBmsb" label="BMSB-risk goods" defaultChecked={defaults?.flagBmsb} />
         </div>
         <Field label="Cargo ready date" htmlFor="readyDate" error={e.readyDate}>
           <Input id="readyDate" name="readyDate" type="date" min={today} aria-invalid={Boolean(e.readyDate)} />
@@ -157,7 +227,7 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
 
       <Section title="Services needed">
         {SERVICES.map((s) => (
-          <Check key={s} name="services" value={s} label={SERVICE_LABELS[s]} />
+          <Check key={s} name="services" value={s} label={SERVICE_LABELS[s]} defaultChecked={defaults?.services.includes(s)} />
         ))}
       </Section>
 
@@ -177,7 +247,7 @@ export function PostJobForm({ ports }: { ports: Port[] }) {
           </Field>
         </div>
         <Field label="Notes (optional)" htmlFor="notes" error={e.notes}>
-          <Textarea id="notes" name="notes" aria-invalid={Boolean(e.notes)} />
+          <Textarea id="notes" name="notes" defaultValue={defaults?.notes ?? undefined} aria-invalid={Boolean(e.notes)} />
         </Field>
       </Section>
 

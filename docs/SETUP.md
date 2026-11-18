@@ -2,7 +2,7 @@
 
 A quote board where overseas agents and ANZ freight forwarders post jobs, send quotes and win business, fast.
 
-This is the core build: sign-in, post a job, sealed quotes, award, contact handoff, admin verification and email notifications. The full spec is in [docs/SPEC.md](docs/SPEC.md).
+This is the core build: sign-in, post a job, sealed quotes, award, contact handoff, admin verification and email notifications. The full spec is in [docs/REQUIREMENTS.md](REQUIREMENTS.md).
 
 ## Before the build (about 30 minutes, once)
 

@@ -1,11 +1,11 @@
 ---
-description: Build Southbound Core (F1 to F8 in docs/SPEC.md) in one 1 to 2 hour run
+description: Build Southbound Core (F1 to F8 in docs/REQUIREMENTS.md) in one 1 to 2 hour run
 ---
 
-Build Southbound Core in this session, following docs/SPEC.md. I may not be watching, so work steadily and only stop for a hard blocker.
+Build Southbound Core in this session, following docs/REQUIREMENTS.md. If something important is missing there, fall back to docs/SPEC.md. I may not be watching, so work steadily and only stop for a hard blocker.
 
 ## Setup (5 minutes)
-1. Read AGENTS.md and docs/SPEC.md.
+1. Read AGENTS.md, docs/REQUIREMENTS.md and docs/SPEC.md.
 2. `git checkout -b core-build` from main.
 3. Scaffold the Next.js app in the current folder (keep the existing docs and config files).
 4. Start local Supabase with `npx supabase start`. Use only the local stack. Never link or push to a remote Supabase project.

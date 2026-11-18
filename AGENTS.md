@@ -3,10 +3,10 @@
 Rules for any AI coding agent in this repo.
 
 ## Project
-Southbound Core is a mobile-first web app where overseas freight agents post jobs, ANZ forwarders send sealed quotes, and the poster awards one. Trust matters most: sealed quotes and hidden contact details are enforced in the database. The full spec is docs/SPEC.md. Anything not in the spec is out of scope.
+Southbound Core is a mobile-first web app where overseas freight agents post jobs, ANZ forwarders send sealed quotes, and the poster awards one. Trust matters most: sealed quotes and hidden contact details are enforced in the database. The full spec is docs/REQUIREMENTS.md (docs/SPEC.md is the fallback if something is missing). Anything not in the spec is out of scope.
 
 ## Non-negotiables
-- Row Level Security on every table, with tests for every SEC rule in docs/SPEC.md.
+- Row Level Security on every table, with tests for every SEC rule in docs/REQUIREMENTS.md.
 - Quotes are sealed. Contact details only after award, only for poster and winner.
 - Only Verified, active companies can award.
 - Mobile first: design for 375px wide.

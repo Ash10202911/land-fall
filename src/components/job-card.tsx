@@ -22,14 +22,13 @@ export function JobCard({ job, quoteCount }: { job: JobRow; quoteCount?: number 
   const awarded = job.status === "awarded";
   const ModeIcon = job.mode === "Air" ? Plane : Container;
   return (
-    <Link href={`/jobs/${job.id}`} className="block">
-      <Card className="space-y-2 transition-colors hover:bg-muted/40">
-        <div className="flex items-start justify-between gap-2">
-          <p className="flex flex-wrap items-center gap-x-2 font-semibold">
-            <span>{job.origin.name}</span>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" aria-label="to" />
-            <span>{job.destination.name}</span>
-          </p>
+    <Link href={`/jobs/${job.id}`} className="group block">
+      <Card className="space-y-3 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lift">
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
+            <ModeIcon className="h-3.5 w-3.5" aria-hidden />
+            {job.mode}
+          </span>
           <Badge tone={awarded ? "verified" : job.status === "cancelled" ? "danger" : closed ? "neutral" : "success"}>
             {awarded ? "Awarded" : job.status === "cancelled" ? "Cancelled" : closed ? "Closed" : "Open"}
           </Badge>

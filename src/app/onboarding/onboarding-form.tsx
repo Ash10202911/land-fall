@@ -1,0 +1,51 @@
+"use client";
+
+import { useActionState } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, Input, Select } from "@/components/ui/form";
+import { completeOnboarding } from "./actions";
+import type { FormState } from "@/lib/validation/auth";
+
+export function OnboardingForm() {
+  const [state, action, pending] = useActionState<FormState, FormData>(completeOnboarding, {});
+  const e = state.errors ?? {};
+  return (
+    <form action={action} className="space-y-4" noValidate>
+      <Field label="Company name" htmlFor="companyName" error={e.companyName}>
+        <Input
+          id="companyName"
+          name="companyName"
+          autoComplete="organization"
+          aria-invalid={Boolean(e.companyName)}
+          required
+        />
+      </Field>
+      <Field label="Country" htmlFor="country" error={e.country}>
+        <Input
+          id="country"
+          name="country"
+          autoComplete="country-name"
+          aria-invalid={Boolean(e.country)}
+          required
+        />
+      </Field>
+      <Field label="Your company is a" htmlFor="role" error={e.role}>
+        <Select id="role" name="role" defaultValue="" aria-invalid={Boolean(e.role)} required>
+          <option value="" disabled>
+            Choose one
+          </option>
+          <option value="agent">Overseas agent (posts jobs)</option>
+          <option value="forwarder">Australia or New Zealand forwarder (sends quotes)</option>
+        </Select>
+      </Field>
+      {state.message ? (
+        <p role="alert" className="text-sm text-destructive">
+          {state.message}
+        </p>
+      ) : null}
+      <Button type="submit" size="full" disabled={pending}>
+        {pending ? "Saving…" : "Continue"}
+      </Button>
+    </form>
+  );
+}

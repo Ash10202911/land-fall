@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:rls": "vitest run --config vitest.rls.config.ts",
+    "test:rls": "vitest run --config vitest.rls.config.mts",
     "test:e2e": "playwright test",
     "db:reset": "supabase db reset"
   },
@@ -23,6 +23,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "resend": "^6.38.1",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.7"
   },

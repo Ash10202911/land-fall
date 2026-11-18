@@ -13,10 +13,10 @@
   },
   "agent": {
     "build_and_improve": {
-      "description": "Follows the process in PROCESS.md to build the project and improve yourself",
+      "description": "Follows the process in docs/PROCESS.md to build the project and improve yourself",
       "mode": "primary",
       "model": "openrouter/openai/gpt-6.1-sol-pro",
-      "prompt": "Follow the process in PROCESS.md to build the entire project, have a product_review, and then improve your own process for the future",
+      "prompt": "Follow the process in docs/PROCESS.md to build the entire project, have a product_review, and then improve your own process for the future",
       "permission": {
         ".env": "deny",
         "edit": "allow",

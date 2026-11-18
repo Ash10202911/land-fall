@@ -1,6 +1,6 @@
-# Southbound Core: build spec
+# Southbound: build spec
 
-The smallest version of Southbound that proves the idea: an overseas agent posts a job, ANZ forwarders send sealed quotes, the agent awards one, and both sides get each other's contact details and an email. Sized for one 1 to 2 hour Claude Code run.
+The smallest version of Southbound that proves the idea: an overseas agent posts a job, ANZ forwarders send sealed quotes, the agent awards one, and both sides get each other's contact details and an email. Sized for one 1 to 2 hour Claude Code run. Keep the color combination perfect for a freight forwardin business and professsional, cool. 
 
 Everything not in this file is out of scope for this run.
 

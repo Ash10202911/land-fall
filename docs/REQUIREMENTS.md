@@ -1,4 +1,4 @@
-# Southbound Core — Requirements
+# Southbound  — Requirements
 
 ## Summary
 
@@ -135,7 +135,9 @@ secrets in code; no personal data in logs.
 - **Mobile first.** Design for a 375px viewport; tap targets at least 44px; no horizontal scroll;
   no wide tables on mobile (use stacked cards).
 - Clean, professional and trustworthy. Freight is a serious business; avoid novelty.
-- Use shadcn/ui defaults as the base with one restrained accent colour and grays.
+- Use shadcn/ui defaults as the base with one restrained accent colour and grays. Choose a colour
+  combination that suits a professional, cool freight forwarding brand (for example deep navy or
+  teal with cool grays).
 - Avoid generic "AI-generated" tells: background gradients, gradient buttons, and cards with a single
   accent border line down one side. Avoid unnecessary emojis; use icons for navigation and actions.
 - Every list has an empty state; every form shows clear validation errors.
@@ -204,7 +206,7 @@ after each feature with a message tagged by feature ID (for example `feat(F5): s
 2. `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:rls` and `npm run build` all pass.
 3. The Playwright journey above passes.
 4. README updated with local setup and deploy steps.
-5. Work is on a feature branch, pushed, with a pull request open to `main`. The builder never pushes
+5. Work is on the feature branch `core-build`, pushed, with a pull request open to `main`. The builder never pushes
    to `main`, merges, deploys, or links to a remote Supabase project; the founder and GitHub Actions do.
 
 ## Final success criteria

@@ -3,7 +3,7 @@
 @AGENTS.md
 
 ## Claude Code
-- Main command: `/build-core` builds everything in docs/SPEC.md in one run.
+- Main command: `/build-core` builds everything in docs/REQUIREMENTS.md in one run.
 - Subagents in `.claude/agents/`: reviewer, security-reviewer.
 
 ## Commands (created during the build)

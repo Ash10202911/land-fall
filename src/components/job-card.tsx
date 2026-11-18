@@ -15,8 +15,9 @@ export function JobFlags({ job }: { job: Pick<JobRow, "flag_dg" | "flag_reefer" 
   );
 }
 
-export function JobCard({ job }: { job: JobRow }) {
+export function JobCard({ job, quoteCount }: { job: JobRow; quoteCount?: number }) {
   const closed = isJobClosed(job);
+  const awarded = job.status === "awarded";
   return (
     <Link href={`/jobs/${job.id}`} className="block">
       <Card className="space-y-2 transition-colors hover:bg-muted/40">
@@ -26,7 +27,9 @@ export function JobCard({ job }: { job: JobRow }) {
             <ArrowRight className="h-4 w-4 text-muted-foreground" aria-label="to" />
             <span>{job.destination.name}</span>
           </p>
-          <Badge tone={closed ? "neutral" : "success"}>{closed ? "Closed" : "Open"}</Badge>
+          <Badge tone={awarded ? "verified" : closed ? "neutral" : "success"}>
+            {awarded ? "Awarded" : closed ? "Closed" : "Open"}
+          </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
           {job.mode} · {cargoSummary(job)} · {job.incoterm} · {job.direction === "import" ? "Import" : "Export"}
@@ -34,7 +37,11 @@ export function JobCard({ job }: { job: JobRow }) {
         <p className="line-clamp-2 text-sm">{job.cargo_description}</p>
         <JobFlags job={job} />
         <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>{job.company?.name ?? "Unknown company"}</span>
+          <span>
+            {quoteCount === undefined
+              ? (job.company?.name ?? "Unknown company")
+              : `${quoteCount} ${quoteCount === 1 ? "quote" : "quotes"} received`}
+          </span>
           <span className="inline-flex items-center gap-1">
             <Clock className="h-3 w-3" aria-hidden />
             Quotes by {formatDateTime(job.deadline_at)}

@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
 import { JOB_SELECT, cargoSummary, normaliseJob, portLabel } from "@/lib/jobs";
 import { QuoterSection } from "./quoter-section";
+import { PosterSection } from "./poster-section";
+import { AwardContacts } from "./contacts";
 import { CONTAINER_LABELS, SERVICE_LABELS, formatDate, formatDateTime, isJobClosed } from "@/lib/domain";
 
 export const metadata = { title: "Job" };
@@ -27,10 +29,10 @@ export default async function JobDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{ edit?: string; award_error?: string }>;
 }) {
   const { id } = await params;
-  const { edit } = await searchParams;
+  const { edit, award_error: awardError } = await searchParams;
   if (!UUID.test(id)) notFound();
 
   const me = await requireMember();
@@ -106,7 +108,13 @@ export default async function JobDetailPage({
         ) : null}
       </Card>
 
-      {!isPoster ? <QuoterSection job={job} me={me} edit={edit === "1"} /> : null}
+      {job.status === "awarded" ? <AwardContacts jobId={job.id} /> : null}
+
+      {isPoster ? (
+        <PosterSection job={job} company={me.company} awardError={awardError} />
+      ) : (
+        <QuoterSection job={job} me={me} edit={edit === "1"} />
+      )}
     </div>
   );
 }

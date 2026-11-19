@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, FilePlus2, FileText, User } from "lucide-react";
+import { Briefcase, FilePlus2, FileText, LayoutDashboard, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/jobs", label: "Jobs", icon: Briefcase },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/post", label: "Post", icon: FilePlus2 },
   { href: "/quotes", label: "My Quotes", icon: FileText },
   { href: "/profile", label: "Profile", icon: User },
@@ -39,7 +40,7 @@ export function BottomNav() {
       className="fixed inset-x-3 bottom-3 z-20 rounded-2xl border border-white/10 bg-primary/95 shadow-[0_12px_32px_-8px_rgb(17_27_54/0.55)] backdrop-blur md:hidden"
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="mx-auto grid max-w-xl grid-cols-4 gap-1 p-1.5">
+      <ul className="mx-auto grid max-w-xl grid-cols-5 gap-1 p-1.5">
         {items.map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (

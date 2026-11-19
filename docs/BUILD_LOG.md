@@ -46,6 +46,18 @@ Written by Claude Code during `/build-core`.
 | Backups, staging, monitoring, Supabase auth rate limits | not done | Dashboard settings; steps in README "Running it in production" |
 | Sign-in rate limiting in the app | not done | Relies on Supabase Auth limits (set in the hosted project) |
 
+## Dashboard build (analysis in docs/DASHBOARD.md)
+| Rank | Feature | Status | Evidence |
+|---|---|---|---|
+| 1 | Needs-attention queue | done | buildActionQueue unit tests; e2e dashboard.spec.ts |
+| 2 | Marketplace health and verification queue (admin) | done | Migration 20261119000500; RLS tests in sec8-dashboard-stats.test.ts (non-admins refused, no money or contact fields) |
+| 3 | Quote scorecard (forwarders) | done | buildQuoteScorecard unit tests |
+| 4 | Job scorecard (posters) | done | buildJobScorecard unit tests |
+| 5 | Lane demand | done | buildLaneDemand unit tests |
+| - | Decision: no cross-company price data | noted | Sealed quotes: price benchmarks need a minimum-contributors rule first |
+| - | Decision: admin stats are counts and timings only | noted | Spec says admins have no access to quote contents |
+| - | Nav: Dashboard added as a fifth tab | noted | Spec listed four tabs; the request added a dashboard |
+
 ## Definition of done
 | # | Item | Evidence | Pass |
 |---|---|---|---|

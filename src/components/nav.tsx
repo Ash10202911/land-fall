@@ -71,7 +71,7 @@ export function TopNav() {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-10 border-b border-border/70 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:h-16 md:px-6">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 md:h-16 lg:px-8">
         <Logo />
         <nav aria-label="Main" className="hidden md:block">
           <ul className="flex items-center gap-1 rounded-full bg-muted p-1">

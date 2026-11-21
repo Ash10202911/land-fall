@@ -45,7 +45,7 @@ export default async function JobDetailPage({
   const closed = isJobClosed(job);
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-3xl space-y-4">
       <Link href="/jobs" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Jobs

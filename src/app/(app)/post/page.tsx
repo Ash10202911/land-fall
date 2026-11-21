@@ -61,7 +61,7 @@ export default async function PostPage({ searchParams }: { searchParams: Promise
   }
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-3xl space-y-4">
       <h1 className="text-xl font-semibold">Post a job</h1>
       {me.company.status === "suspended" ? (
         <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">

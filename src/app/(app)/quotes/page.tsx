@@ -38,7 +38,7 @@ export default async function MyQuotesPage() {
       {quotes.length === 0 ? (
         <EmptyState title="You have not sent any quotes yet" body="Find an open job in the Jobs tab and send a sealed quote." />
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {quotes.map((q) => (
             <li key={q.id}>
               <Link href={`/jobs/${q.job_id}`} className="block">

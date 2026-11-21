@@ -18,7 +18,7 @@ function ViewTabs({ view }: { view: "open" | "mine" }) {
       active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted",
     );
   return (
-    <nav aria-label="Jobs view" className="flex gap-1 rounded-2xl border border-border bg-card p-1">
+    <nav aria-label="Jobs view" className="flex gap-1 rounded-2xl sm:max-w-md border border-border bg-card p-1">
       <Link href="/jobs" aria-current={view === "open" ? "page" : undefined} className={tab(view === "open")}>
         Open jobs
       </Link>
@@ -57,7 +57,7 @@ export default async function JobsPage({
         {mine.length === 0 ? (
           <EmptyState title="You have not posted a job yet" body="Use the Post tab to ask forwarders for sealed quotes." />
         ) : (
-          <ul className="space-y-3">
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {mine.map(({ job, quoteCount }) => (
               <li key={job.id}>
                 <JobCard job={job} quoteCount={quoteCount} />
@@ -137,7 +137,7 @@ export default async function JobsPage({
           }
         />
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {jobs.map((job) => (
             <li key={job.id}>
               <JobCard job={job} />

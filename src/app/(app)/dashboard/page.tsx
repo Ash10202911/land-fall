@@ -136,7 +136,7 @@ export default async function DashboardPage() {
         >
           {admin.stats ? (
             <>
-              <div className="grid grid-cols-2 gap-3" data-testid="marketplace-kpis">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="marketplace-kpis">
                 {kpis.map((k) => (
                   <Stat key={k.label} label={k.label} value={k.value} hint={k.hint} />
                 ))}
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
           <EmptyState title="No quotes yet" body="Send a sealed quote on an open job and your win rate will show here." />
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3" data-testid="quote-scorecard">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="quote-scorecard">
               <Stat
                 label="Win rate"
                 value={rate(quoting.winRate)}
@@ -227,7 +227,7 @@ export default async function DashboardPage() {
           <EmptyState title="No jobs posted yet" body="Post a job and you will see how quickly quotes arrive." />
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3" data-testid="job-scorecard">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="job-scorecard">
               <Stat
                 label="Jobs posted"
                 value={String(posting.posted)}

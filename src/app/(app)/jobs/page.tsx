@@ -1,74 +1,111 @@
 import Link from "next/link";
+import { FilePlus2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/card";
 import { Select } from "@/components/ui/form";
-import { JobCard } from "@/components/job-card";
+import { JobCard, type Band } from "@/components/job-card";
+import { ActionList, JobScorecardView } from "@/components/scorecards";
 import { createClient } from "@/lib/supabase/server";
-import { requireMember } from "@/lib/auth";
+import { requireMember, type Company } from "@/lib/auth";
 import { JOB_SELECT, normaliseJob } from "@/lib/jobs";
 import { MODES } from "@/lib/domain";
-import { cn } from "@/lib/utils";
+import { actionsFor, buildActionQueue, buildJobScorecard } from "@/lib/dashboard";
+import { loadDashboardData } from "@/lib/dashboard-data";
+import { isNewJob } from "@/lib/mode";
+import { getSeenAt, getViewMode } from "@/lib/view-mode";
+import { markJobsSeen } from "../mode-actions";
 
 export const metadata = { title: "Jobs" };
 
-function ViewTabs({ view }: { view: "open" | "mine" }) {
-  const tab = (active: boolean) =>
-    cn(
-      "inline-flex min-h-11 flex-1 items-center justify-center rounded-xl px-3 text-sm font-medium",
-      active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted",
-    );
+function Heading({ eyebrow, note }: { eyebrow: string; note: string }) {
   return (
-    <nav aria-label="Jobs view" className="flex gap-1 rounded-2xl sm:max-w-md border border-border bg-card p-1">
-      <Link href="/jobs" aria-current={view === "open" ? "page" : undefined} className={tab(view === "open")}>
-        Open jobs
-      </Link>
-      <Link href="/jobs?view=mine" aria-current={view === "mine" ? "page" : undefined} className={tab(view === "mine")}>
-        My jobs
-      </Link>
-    </nav>
+    <div>
+      <p className="text-sm font-semibold text-accent">{eyebrow}</p>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Jobs</h1>
+      <p className="mt-1 text-sm text-muted-foreground">{note}</p>
+    </div>
   );
 }
 
-export default async function JobsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ dest?: string; mode?: string; view?: string }>;
-}) {
-  const me = await requireMember();
-  const { dest, mode, view } = await searchParams;
+/** Requester mode: jobs my company posted, with the quotes coming in. */
+async function RequesterView({ company, now }: { company: Company; now: Date }) {
   const supabase = await createClient();
-
-  if (view === "mine") {
-    // Jobs posted by my company, with the number of quotes received (withdrawn quotes are hidden by RLS).
-    const { data } = await supabase
+  const [{ data }, dash] = await Promise.all([
+    supabase
       .from("jobs")
       .select(`${JOB_SELECT}, quotes:quotes!job_id(count)`)
-      .eq("company_id", me.company.id)
+      .eq("company_id", company.id)
       .order("created_at", { ascending: false })
-      .limit(100);
-    const mine = (data ?? []).map((row) => {
-      const counts = (row as unknown as { quotes?: { count: number }[] }).quotes;
-      return { job: normaliseJob(row), quoteCount: counts?.[0]?.count ?? 0 };
-    });
-    return (
-      <div className="space-y-4">
-        <h1 className="text-xl font-semibold">Jobs</h1>
-        <ViewTabs view="mine" />
+      .limit(100),
+    loadDashboardData(company.id, now),
+  ]);
+  // Withdrawn quotes are hidden by RLS, so the count is live quotes only.
+  const mine = (data ?? []).map((row) => {
+    const counts = (row as unknown as { quotes?: { count: number }[] }).quotes;
+    return { job: normaliseJob(row), quoteCount: counts?.[0]?.count ?? 0 };
+  });
+  const actions = actionsFor(
+    buildActionQueue({
+      isVerified: company.trust_level === "verified",
+      myJobs: dash.myJobs,
+      myQuotes: [],
+      openJobs: [],
+      myCompanyId: company.id,
+      now,
+      limit: 50,
+    }),
+    "requester",
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <Heading eyebrow="My requests · Requester mode" note="Jobs your company posted and the sealed quotes coming in." />
+        <Link
+          href="/post"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        >
+          <FilePlus2 className="h-4 w-4" aria-hidden />
+          Request a quote
+        </Link>
+      </div>
+      <ActionList items={actions} />
+      <JobScorecardView s={buildJobScorecard(dash.myJobs, now)} />
+      <section aria-labelledby="my-jobs-heading" className="space-y-3">
+        <h2 id="my-jobs-heading" className="text-lg font-semibold tracking-tight">
+          Your jobs
+        </h2>
         {mine.length === 0 ? (
-          <EmptyState title="You have not posted a job yet" body="Use the Post tab to ask forwarders for sealed quotes." />
+          <EmptyState title="You have not requested a quote yet" body="Use Request quote to ask forwarders for sealed quotes." />
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {mine.map(({ job, quoteCount }) => (
               <li key={job.id}>
-                <JobCard job={job} quoteCount={quoteCount} />
+                <JobCard job={job} now={now} quoteCount={quoteCount} />
               </li>
             ))}
           </ul>
         )}
-      </div>
-    );
-  }
+      </section>
+    </div>
+  );
+}
 
+/** Quoter mode: the open board of other companies' jobs to quote on. */
+async function QuoterView({
+  company,
+  now,
+  dest,
+  mode,
+  onlyNew,
+}: {
+  company: Company;
+  now: Date;
+  dest?: string;
+  mode?: string;
+  onlyNew: boolean;
+}) {
+  const supabase = await createClient();
   const destId = Number.parseInt(dest ?? "", 10);
   const modeFilter = MODES.find((m) => m === mode);
 
@@ -76,24 +113,54 @@ export default async function JobsPage({
     .from("jobs")
     .select(JOB_SELECT)
     .eq("status", "open")
-    .gt("deadline_at", new Date().toISOString())
-    .neq("company_id", me.company.id)
+    .gt("deadline_at", now.toISOString())
+    .neq("company_id", company.id)
     .order("created_at", { ascending: false })
     .limit(100);
   if (Number.isInteger(destId) && destId > 0) query = query.eq("destination_port_id", destId);
   if (modeFilter) query = query.eq("mode", modeFilter);
 
-  const [{ data: rows }, { data: ports }] = await Promise.all([
+  const [{ data: rows }, { data: ports }, seen] = await Promise.all([
     query,
     supabase.from("ports").select("id, code, name, country").order("country").order("name"),
+    getSeenAt(),
   ]);
-  const jobs = (rows ?? []).map(normaliseJob);
-  const filtered = Boolean(modeFilter) || (Number.isInteger(destId) && destId > 0);
+  const all = (rows ?? []).map(normaliseJob).map((job) => ({ job, isNew: isNewJob(job.created_at, seen, now) }));
+  const newCount = all.filter((j) => j.isNew).length;
+  const jobs = onlyNew ? all.filter((j) => j.isNew) : all;
+
+  const bands = new Map<string, Band>();
+  if (jobs.length > 0) {
+    const { data } = await supabase.rpc("job_quote_bands", { p_job_ids: jobs.map((j) => j.job.id) });
+    for (const r of (data ?? []) as { job_id: string; band: Band }[]) bands.set(r.job_id, r.band);
+  }
+  const filtered = Boolean(modeFilter) || (Number.isInteger(destId) && destId > 0) || onlyNew;
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Jobs</h1>
-      <ViewTabs view="open" />
+    <div className="space-y-5">
+      <Heading eyebrow="Job board · Quoter mode" note="Open jobs from other companies. Your quote is sealed: only the requester sees it." />
+
+      {newCount > 0 ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-primary p-3 pl-4 text-primary-foreground" role="status">
+          <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-cyan-300 motion-reduce:animate-none" aria-hidden />
+          <p className="min-w-0 flex-1 text-sm">
+            <strong className="text-cyan-200">
+              {newCount} new {newCount === 1 ? "job" : "jobs"}
+            </strong>{" "}
+            since your last visit
+          </p>
+          {!onlyNew ? (
+            <Link href="/jobs?new=1" className="inline-flex min-h-10 items-center rounded-xl bg-cyan-300 px-3 text-sm font-bold text-primary">
+              Show new
+            </Link>
+          ) : null}
+          <form action={markJobsSeen}>
+            <button type="submit" className="min-h-10 rounded-xl border border-white/30 px-3 text-sm font-semibold">
+              Mark seen
+            </button>
+          </form>
+        </div>
+      ) : null}
 
       <form method="get" className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_9rem_auto]">
         <Select name="dest" defaultValue={Number.isInteger(destId) ? String(destId) : ""} aria-label="Destination port">
@@ -117,10 +184,7 @@ export default async function JobsPage({
             Filter
           </Button>
           {filtered ? (
-            <Link
-              href="/jobs"
-              className="inline-flex min-h-11 items-center rounded-xl border border-input bg-card px-4 text-sm"
-            >
+            <Link href="/jobs" className="inline-flex min-h-11 items-center rounded-xl border border-input bg-card px-4 text-sm">
               Clear
             </Link>
           ) : null}
@@ -130,21 +194,33 @@ export default async function JobsPage({
       {jobs.length === 0 ? (
         <EmptyState
           title={filtered ? "No jobs match those filters" : "No open jobs right now"}
-          body={
-            filtered
-              ? "Try a different destination or mode."
-              : "New jobs from other companies appear here, newest first."
-          }
+          body={filtered ? "Try a different destination or mode." : "New jobs from other companies appear here, newest first."}
         />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {jobs.map((job) => (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {jobs.map(({ job, isNew }) => (
             <li key={job.id}>
-              <JobCard job={job} />
+              <JobCard job={job} now={now} isNew={isNew} band={bands.get(job.id)} />
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ dest?: string; mode?: string; new?: string }>;
+}) {
+  const me = await requireMember();
+  const viewMode = await getViewMode(me.company);
+  const { dest, mode, new: onlyNew } = await searchParams;
+  const now = new Date();
+  return viewMode === "requester" ? (
+    <RequesterView company={me.company} now={now} />
+  ) : (
+    <QuoterView company={me.company} now={now} dest={dest} mode={mode} onlyNew={onlyNew === "1"} />
   );
 }

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { formatDate } from "@/lib/domain";
+import { MarketplaceHealth } from "@/components/scorecards";
+import { loadAdminData } from "@/lib/dashboard-data";
 import { updateCompany } from "./actions";
 
 export const metadata = { title: "Admin" };
@@ -52,6 +54,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     .order("created_at", { ascending: false })
     .limit(15);
   const audit = (auditData ?? []) as unknown as AuditRow[];
+  const health = await loadAdminData(30);
 
   return (
     <div className="space-y-4">
@@ -59,6 +62,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <p className="text-sm text-muted-foreground">
         Verify companies so they can award jobs. Suspended companies cannot post, quote or award.
       </p>
+
+      <MarketplaceHealth stats={health.stats} queue={health.queue} />
 
       <form role="search" className="flex gap-2">
         <label htmlFor="q" className="sr-only">

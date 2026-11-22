@@ -13,7 +13,7 @@ const DAY = 24 * HOUR;
 export type PortLite = { code: string; name: string };
 type Line = { amount_minor: number | string | bigint; currency: string };
 
-/** A quote on one of my jobs (the poster's view). */
+/** A quote on one of my jobs (the requester's view). */
 export type JobQuote = { id: string; status: string; created_at: string; lines: Line[] };
 
 /** One of my jobs with the quotes I can see on it. */
@@ -98,7 +98,8 @@ function singleCurrencyTotal(lines: Line[]): { currency: string; minor: number }
 // ---------------------------------------------------------------------------
 
 export type ActionTone = "danger" | "warning" | "success" | "neutral";
-export type ActionItem = { id: string; tone: ActionTone; title: string; detail: string; href: string };
+export type ActionSide = "requester" | "quoter";
+export type ActionItem = { id: string; side: ActionSide; tone: ActionTone; title: string; detail: string; href: string };
 
 const toneOrder: Record<ActionTone, number> = { danger: 0, warning: 1, success: 2, neutral: 3 };
 
@@ -115,12 +116,13 @@ export function buildActionQueue(input: {
   const items: ActionItem[] = [];
   const t = now.getTime();
 
-  // Poster: quotes are waiting on open jobs.
+  // Requester: quotes are waiting on open jobs.
   const waiting = myJobs.filter((j) => j.status === "open" && j.quotes.some((q) => q.status === "sent"));
   const waitingQuotes = waiting.reduce((n, j) => n + j.quotes.filter((q) => q.status === "sent").length, 0);
   if (waiting.length > 0 && !isVerified) {
     items.push({
       id: "get-verified",
+        side: "requester",
       tone: "danger",
       title: `Get verified to award ${waitingQuotes} ${waitingQuotes === 1 ? "quote" : "quotes"}`,
       detail: `${waiting.length} of your ${waiting.length === 1 ? "job has" : "jobs have"} quotes waiting. Only Verified companies can award.`,
@@ -131,6 +133,7 @@ export function buildActionQueue(input: {
       const n = j.quotes.filter((q) => q.status === "sent").length;
       items.push({
         id: `award-${j.id}`,
+        side: "requester",
         tone: "success",
         title: `${n} ${n === 1 ? "quote" : "quotes"} ready to compare`,
         detail: `${route(j)}. ${ms(j.deadline_at) > t ? `Quotes close in ${timeLeft(j.deadline_at, now)}.` : "Quoting has closed. Choose a winner."}`,
@@ -139,13 +142,14 @@ export function buildActionQueue(input: {
     }
   }
 
-  // Poster: no quotes yet.
+  // Requester: no quotes yet.
   for (const j of myJobs) {
     if (j.status !== "open" || liveQuotes(j).length > 0) continue;
     const left = ms(j.deadline_at) - t;
     if (left > 0 && left <= DAY) {
       items.push({
         id: `closing-${j.id}`,
+        side: "requester",
         tone: "warning",
         title: "Closing soon with no quotes",
         detail: `${route(j)}. Closes in ${timeLeft(j.deadline_at, now)}. Extend the deadline to give forwarders more time.`,
@@ -154,6 +158,7 @@ export function buildActionQueue(input: {
     } else if (left <= 0 && t - ms(j.deadline_at) <= 14 * DAY) {
       items.push({
         id: `expired-${j.id}`,
+        side: "requester",
         tone: "neutral",
         title: "No quotes received",
         detail: `${route(j)}. The deadline passed with no quotes. Post it again with a longer deadline.`,
@@ -173,6 +178,7 @@ export function buildActionQueue(input: {
       if (validTo - t <= 3 * DAY && validTo >= t) {
         items.push({
           id: `expiring-${q.id}`,
+          side: "quoter",
           tone: "warning",
           title: "Your quote expires soon",
           detail: `${route(q.job)}. Valid until ${q.valid_until.split("-").reverse().join("/")}. Edit it to extend the validity.`,
@@ -183,9 +189,10 @@ export function buildActionQueue(input: {
     if (q.status === "won" && t - ms(q.created_at) <= 30 * DAY) {
       items.push({
         id: `won-${q.id}`,
+          side: "quoter",
         tone: "success",
         title: "You won a job",
-        detail: `${route(q.job)}. The poster's contact details are on the job page.`,
+        detail: `${route(q.job)}. The requester's contact details are on the job page.`,
         href: `/jobs/${q.job_id}`,
       });
     }
@@ -201,6 +208,7 @@ export function buildActionQueue(input: {
   for (const { j } of closingSoon) {
     items.push({
       id: `closing-open-${j.id}`,
+          side: "quoter",
       tone: "neutral",
       title: `${j.mode} job closing in ${timeLeft(j.deadline_at, now)}`,
       detail: `${route(j)}. You have not quoted this job yet.`,
@@ -209,6 +217,11 @@ export function buildActionQueue(input: {
   }
 
   return items.sort((a, b) => toneOrder[a.tone] - toneOrder[b.tone]).slice(0, input.limit ?? 8);
+}
+
+/** The action items for one side, keeping their order. */
+export function actionsFor(items: ActionItem[], side: ActionSide, limit = 6): ActionItem[] {
+  return items.filter((i) => i.side === side).slice(0, limit);
 }
 
 // ---------------------------------------------------------------------------
@@ -256,7 +269,7 @@ export function marketplaceKpis(s: MarketplaceStats): MarketplaceKpi[] {
     {
       label: "Quoted jobs awarded",
       value: awardedRate === null ? "None yet" : `${awardedRate}%`,
-      hint: `${s.jobs.awarded} awarded, ${s.jobs.awaiting_award} still waiting for the poster`,
+      hint: `${s.jobs.awarded} awarded, ${s.jobs.awaiting_award} still waiting for the requester`,
     },
     {
       label: "Quotes per job",
@@ -339,7 +352,7 @@ export function buildQuoteScorecard(quotes: MyQuote[], now: Date, days = 90): Qu
 }
 
 // ---------------------------------------------------------------------------
-// 4. Job scorecard (posters)
+// 4. Job scorecard (requesters)
 // ---------------------------------------------------------------------------
 
 export type JobScorecard = {

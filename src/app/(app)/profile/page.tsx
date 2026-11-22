@@ -12,7 +12,7 @@ export default async function ProfilePage() {
   const me = await requireMember();
   const { company } = me;
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-3xl space-y-4">
       <h1 className="text-xl font-semibold">Profile</h1>
 
       <Card className="space-y-2">

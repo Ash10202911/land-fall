@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, FilePlus2, FileText, LayoutDashboard, User } from "lucide-react";
+import { Briefcase, FilePlus2, FileText, Inbox, User, type LucideIcon } from "lucide-react";
+import { ModeSwitch } from "@/components/mode-switch";
+import { navItemsFor, type NavIcon, type ViewMode } from "@/lib/mode";
 import { cn } from "@/lib/utils";
 
-const items = [
-  { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/post", label: "Post", icon: FilePlus2 },
-  { href: "/quotes", label: "My Quotes", icon: FileText },
-  { href: "/profile", label: "Profile", icon: User },
-];
+const ICONS: Record<NavIcon, LucideIcon> = {
+  requests: Inbox,
+  request: FilePlus2,
+  board: Briefcase,
+  quotes: FileText,
+  profile: User,
+};
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -19,30 +21,32 @@ function isActive(pathname: string, href: string) {
 
 function Logo() {
   return (
-    <Link href="/jobs" className="flex items-center gap-2.5 text-lg font-bold tracking-tight">
+    <Link href="/jobs" className="flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight" aria-label="Southbound home">
       <span
-        className="grid h-8 w-8 place-items-center rounded-xl bg-accent text-sm font-extrabold text-accent-foreground shadow-lift"
+        className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-sm font-extrabold text-primary-foreground shadow-card"
         aria-hidden
       >
         S
       </span>
-      Southbound
+      <span className="hidden sm:inline">Southbound</span>
     </Link>
   );
 }
 
 /** Floating pill tab bar on phones. */
-export function BottomNav() {
+export function BottomNav({ mode }: { mode: ViewMode }) {
   const pathname = usePathname();
+  const items = navItemsFor(mode);
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-3 bottom-3 z-20 rounded-2xl border border-white/10 bg-primary/95 shadow-[0_12px_32px_-8px_rgb(17_27_54/0.55)] backdrop-blur md:hidden"
+      className="fixed inset-x-3 bottom-3 z-20 rounded-2xl border border-white/10 bg-primary/95 shadow-[0_12px_32px_-8px_rgb(12_74_110/0.55)] backdrop-blur md:hidden"
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="mx-auto grid max-w-xl grid-cols-5 gap-1 p-1.5">
-        {items.map(({ href, label, icon: Icon }) => {
+      <ul className="mx-auto grid max-w-xl grid-cols-3 gap-1 p-1.5">
+        {items.map(({ href, label, icon }) => {
           const active = isActive(pathname, href);
+          const Icon = ICONS[icon];
           return (
             <li key={href}>
               <Link
@@ -50,9 +54,7 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[11px] transition-colors",
-                  active
-                    ? "bg-accent font-semibold text-accent-foreground"
-                    : "text-white/65 hover:text-white",
+                  active ? "bg-accent-soft font-semibold text-primary" : "text-white/80 hover:text-white",
                 )}
               >
                 <Icon className="h-5 w-5" aria-hidden />
@@ -66,14 +68,16 @@ export function BottomNav() {
   );
 }
 
-/** Sticky frosted top bar on desktop; a slim brand bar on phones. */
-export function TopNav() {
+/** Sticky frosted top bar with the Requester / Quoter switch on every screen size. */
+export function TopNav({ mode }: { mode: ViewMode }) {
   const pathname = usePathname();
+  const items = navItemsFor(mode);
   return (
-    <header className="sticky top-0 z-10 border-b border-border/70 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:h-16 md:px-6">
+    <header className="sticky top-0 z-10 border-b border-border/70 bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Logo />
-        <nav aria-label="Main" className="hidden md:block">
+        <ModeSwitch mode={mode} />
+        <nav aria-label="Sections" className="hidden md:block">
           <ul className="flex items-center gap-1 rounded-full bg-muted p-1">
             {items.map(({ href, label }) => {
               const active = isActive(pathname, href);
@@ -96,6 +100,7 @@ export function TopNav() {
             })}
           </ul>
         </nav>
+        <span className="w-9 md:hidden" aria-hidden />
       </div>
     </header>
   );

@@ -5,13 +5,13 @@ import { planAwardEmails, planNewQuoteEmails } from "./notification-plan";
 const base = { baseUrl: "https://app.example.com/", jobId: "job-1", route: "Shenzhen to Melbourne" };
 
 describe("recipients per email event", () => {
-  it("new quote goes to the poster only, with no amounts", () => {
+  it("new quote goes to the requester only, with no amounts", () => {
     const emails = planNewQuoteEmails({
       ...base,
-      poster: { email: "poster@example.com", company: "Poster Co" },
+      requester: { email: "requester@example.com", company: "Requester Co" },
       quoterCompany: "Quoter Co",
     });
-    expect(emails.map((e) => e.to)).toEqual(["poster@example.com"]);
+    expect(emails.map((e) => e.to)).toEqual(["requester@example.com"]);
     expect(emails[0].text).toContain("Quoter Co");
     expect(emails[0].text).toContain("https://app.example.com/jobs/job-1");
     expect(emails[0].text).not.toMatch(/\$|AUD|USD/);
@@ -20,7 +20,7 @@ describe("recipients per email event", () => {
   it("award tells the winner they won and every other quoter they lost", () => {
     const emails = planAwardEmails({
       ...base,
-      posterCompany: "Poster Co",
+      requesterCompany: "Requester Co",
       winner: { email: "win@example.com", company: "Winner Co" },
       losers: [
         { email: "lose1@example.com", company: "L1" },
@@ -36,7 +36,7 @@ describe("recipients per email event", () => {
   it("does not email the winner twice or the same loser twice", () => {
     const emails = planAwardEmails({
       ...base,
-      posterCompany: "Poster Co",
+      requesterCompany: "Requester Co",
       winner: { email: "win@example.com", company: "W" },
       losers: [
         { email: "WIN@example.com", company: "W2" },
@@ -50,7 +50,7 @@ describe("recipients per email event", () => {
   it("contact details are never put in email", () => {
     const emails = planAwardEmails({
       ...base,
-      posterCompany: "Poster Co",
+      requesterCompany: "Requester Co",
       winner: { email: "win@example.com", company: "W" },
       losers: [],
     });

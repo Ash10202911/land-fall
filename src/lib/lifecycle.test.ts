@@ -49,7 +49,7 @@ describe("planCancelEmails", () => {
       baseUrl: "https://example.com/",
       jobId: "j1",
       route: "Shenzhen to Melbourne",
-      posterCompany: "Acme Agents",
+      requesterCompany: "Acme Agents",
       quoters: [
         { email: "a@x.com", company: "A" },
         { email: "A@x.com", company: "A" },

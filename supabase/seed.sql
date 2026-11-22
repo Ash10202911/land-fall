@@ -60,7 +60,8 @@ update public.profiles set company_id = 'c0000000-0000-4000-8000-000000000005',
 insert into public.jobs (
   id, company_id, created_by, direction, incoterm, mode, origin_port_id, destination_port_id,
   container_type, container_qty, weight_kg, volume_cbm, cargo_description, ready_date,
-  services, flag_dg, flag_reefer, flag_bmsb, deadline_at, notes, status, created_at
+  services, flag_dg, flag_reefer, flag_bmsb, deadline_at, notes, status, created_at,
+  delivery_suburb, delivery_postcode, unload_type, repeat_frequency, repeat_volume, required_by
 ) values
   -- Open: Shenzhen to Melbourne, 2 x 40HC of furniture, with a live quote from fwd1
   ('b0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000002',
@@ -68,42 +69,48 @@ insert into public.jobs (
    (select id from public.ports where code = 'CNSZX'), (select id from public.ports where code = 'AUMEL'),
    '40HC', 2, null, null, 'Flat-pack timber furniture, palletised', current_date + 14,
    array['destination_charges', 'customs_clearance', 'delivery'], false, false, true,
-   now() + interval '5 days', 'BMSB treatment certificate will be provided.', 'open', now() - interval '2 hours'),
+   now() + interval '5 days', 'BMSB treatment certificate will be provided.', 'open', now() - interval '2 hours',
+   'Dandenong South VIC', '3175', 'side_loader', 'monthly', 'About 2 x 40HC each month', current_date + 45),
   -- Open: Ningbo to Sydney, LCL
   ('b0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000002',
    'import', 'EXW', 'LCL',
    (select id from public.ports where code = 'CNNGB'), (select id from public.ports where code = 'AUSYD'),
    null, null, 1850.00, 6.400, 'Industrial pumps in crates', current_date + 10,
    array['destination_charges', 'customs_clearance'], false, false, false,
-   now() + interval '3 days', null, 'open', now() - interval '1 day'),
+   now() + interval '3 days', null, 'open', now() - interval '1 day',
+   null, null, null, 'one_off', null, null),
   -- Open: Mumbai to Auckland, air freight
   ('b0000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000003',
    'import', 'FCA', 'Air',
    (select id from public.ports where code = 'INNSA'), (select id from public.ports where code = 'NZAKL'),
    null, null, 420.50, 2.100, 'Textile samples and trims', current_date + 5,
    array['destination_charges', 'delivery'], false, false, false,
-   now() + interval '2 days', 'Urgent. Priority uplift preferred.', 'open', now() - interval '3 hours'),
+   now() + interval '2 days', 'Urgent. Priority uplift preferred.', 'open', now() - interval '3 hours',
+   'East Tamaki, Auckland', '2013', 'tailgate', 'one_off', null, current_date + 9),
   -- Open export: Sydney to Singapore, FCL reefer, posted by a forwarder
   ('b0000000-0000-4000-8000-000000000004', 'c0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000004',
    'export', 'FOB', 'FCL',
    (select id from public.ports where code = 'AUSYD'), (select id from public.ports where code = 'SGSIN'),
    '40RF', 1, null, null, 'Chilled beef, boxed', current_date + 7,
    array[]::text[], false, true, false,
-   now() + interval '4 days', null, 'open', now() - interval '6 hours'),
+   now() + interval '4 days', null, 'open', now() - interval '6 hours',
+   null, null, null, 'weekly', '1 x 40RF each week', null),
   -- Closed: deadline passed, no award
   ('b0000000-0000-4000-8000-000000000005', 'c0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000002',
    'import', 'CIF', 'FCL',
    (select id from public.ports where code = 'CNSHA'), (select id from public.ports where code = 'AUBNE'),
    '20GP', 1, null, null, 'Ceramic tiles', current_date + 3,
    array['customs_clearance'], false, false, false,
-   now() - interval '1 day', null, 'open', now() - interval '6 days'),
+   now() - interval '1 day', null, 'open', now() - interval '6 days',
+   null, null, null, 'one_off', null, null),
   -- Awarded: Shenzhen to Fremantle; fwd1 won, fwd2 lost
   ('b0000000-0000-4000-8000-000000000006', 'c0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000002',
    'import', 'FOB', 'FCL',
    (select id from public.ports where code = 'CNSZX'), (select id from public.ports where code = 'AUFRE'),
    '40GP', 1, null, null, 'Consumer electronics accessories', current_date - 2,
    array['destination_charges', 'delivery'], false, false, false,
-   now() - interval '3 days', null, 'open', now() - interval '10 days');
+   now() - interval '3 days', null, 'open', now() - interval '10 days',
+   'Kewdale WA', '6105', 'forklift', 'one_off', null, null);
 
 -- Quotes
 insert into public.quotes (id, job_id, company_id, created_by, valid_until, notes, status, created_at) values
@@ -132,3 +139,6 @@ insert into public.quote_lines (quote_id, charge_name, amount_minor, currency, g
 
 update public.jobs set status = 'awarded', awarded_quote_id = 'd0000000-0000-4000-8000-000000000003'
  where id = 'b0000000-0000-4000-8000-000000000006';
+
+insert into public.job_delivery_addresses (job_id, street) values
+  ('b0000000-0000-4000-8000-000000000006', '14 Example Road');

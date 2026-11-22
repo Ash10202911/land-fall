@@ -8,18 +8,18 @@ function jobUrl(baseUrl: string, jobId: string) {
   return `${baseUrl.replace(/\/$/, "")}/jobs/${jobId}`;
 }
 
-/** New quote on my job: the poster only. Quote amounts are never put in email. */
+/** New quote on my job: the requester only. Quote amounts are never put in email. */
 export function planNewQuoteEmails(args: {
   baseUrl: string;
   jobId: string;
   route: string;
-  poster: Person;
+  requester: Person;
   quoterCompany: string;
 }): EmailMessage[] {
-  const { baseUrl, jobId, route, poster, quoterCompany } = args;
+  const { baseUrl, jobId, route, requester, quoterCompany } = args;
   return [
     {
-      to: poster.email,
+      to: requester.email,
       subject: `New quote on your job: ${route}`,
       text: `${quoterCompany} sent a sealed quote on your job ${route}.\n\nReview and compare quotes: ${jobUrl(baseUrl, jobId)}`,
     },
@@ -31,17 +31,17 @@ export function planAwardEmails(args: {
   baseUrl: string;
   jobId: string;
   route: string;
-  posterCompany: string;
+  requesterCompany: string;
   winner: Person;
   losers: Person[];
 }): EmailMessage[] {
-  const { baseUrl, jobId, route, posterCompany, winner, losers } = args;
+  const { baseUrl, jobId, route, requesterCompany, winner, losers } = args;
   const url = jobUrl(baseUrl, jobId);
   const emails: EmailMessage[] = [
     {
       to: winner.email,
       subject: `You won: ${route}`,
-      text: `${posterCompany} awarded you the job ${route}.\n\nSign in to see their contact details: ${url}\n\nNever change bank details based on a message. Always confirm by phone using a number you already trust.`,
+      text: `${requesterCompany} awarded you the job ${route}.\n\nSign in to see their contact details: ${url}\n\nNever change bank details based on a message. Always confirm by phone using a number you already trust.`,
     },
   ];
   const seen = new Set([winner.email.toLowerCase()]);
@@ -52,21 +52,21 @@ export function planAwardEmails(args: {
     emails.push({
       to: loser.email,
       subject: `Quote not selected: ${route}`,
-      text: `${posterCompany} chose another quote for the job ${route}. Thank you for quoting.\n\nView the job: ${url}`,
+      text: `${requesterCompany} chose another quote for the job ${route}. Thank you for quoting.\n\nView the job: ${url}`,
     });
   }
   return emails;
 }
 
-/** A poster cancelled their job: every company that had a live quote is told. Duplicates are removed. */
+/** A requester cancelled their job: every company that had a live quote is told. Duplicates are removed. */
 export function planCancelEmails(args: {
   baseUrl: string;
   jobId: string;
   route: string;
-  posterCompany: string;
+  requesterCompany: string;
   quoters: Person[];
 }): EmailMessage[] {
-  const { baseUrl, jobId, route, posterCompany, quoters } = args;
+  const { baseUrl, jobId, route, requesterCompany, quoters } = args;
   const url = jobUrl(baseUrl, jobId);
   const seen = new Set<string>();
   const emails: EmailMessage[] = [];
@@ -77,7 +77,7 @@ export function planCancelEmails(args: {
     emails.push({
       to: q.email,
       subject: `Job cancelled: ${route}`,
-      text: `${posterCompany} cancelled the job ${route}. Your quote was not selected. Thank you for quoting.\n\nView the job: ${url}`,
+      text: `${requesterCompany} cancelled the job ${route}. Your quote was not selected. Thank you for quoting.\n\nView the job: ${url}`,
     });
   }
   return emails;

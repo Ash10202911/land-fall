@@ -53,8 +53,10 @@ test("agent posts, forwarders quote, admin verifies, agent awards, only winner s
   await expect(agent.page.getByRole("navigation", { name: "Main" })).toBeVisible(); // bottom tab bar
   expect(await expectNoHorizontalScroll(agent.page)).toBe(0);
 
-  await agent.page.getByRole("link", { name: "Post", exact: true }).click();
-  await expect(agent.page.getByRole("heading", { name: "Post a job" })).toBeVisible();
+  // An agent company starts in Requester mode.
+  await expect(agent.page.getByRole("radio", { name: "Requester" })).toHaveAttribute("aria-checked", "true");
+  await agent.page.getByRole("link", { name: "Request quote", exact: true }).click();
+  await expect(agent.page.getByRole("heading", { name: "Request a quote" })).toBeVisible();
 
   // a past deadline is rejected with a clear error
   await agent.page.locator("#originPortId").fill("Shenzhen");
@@ -63,21 +65,30 @@ test("agent posts, forwarders quote, admin verifies, agent awards, only winner s
   await agent.page.getByRole("option", { name: /Melbourne \(AUMEL\)/ }).click();
   await agent.page.locator("#cargoDescription").fill(CARGO);
   await agent.page.locator("#readyDate").fill(isoDate(10));
+  await agent.page.getByRole("button", { name: /Defaults/ }).click();
+  await agent.page.getByRole("button", { name: "Pick a date" }).click();
   await agent.page.locator("#deadlineDate").fill(isoDate(-2));
-  await agent.page.getByRole("button", { name: "Post job" }).click();
+  await agent.page.getByRole("button", { name: "Post request" }).click();
   await expect(agent.page.getByText("The quote deadline must be in the future")).toBeVisible();
   expect(await expectNoHorizontalScroll(agent.page)).toBe(0);
 
   await agent.page.locator("#deadlineDate").fill(isoDate(3));
-  await agent.page.getByRole("button", { name: "Post job" }).click();
+  await agent.page.getByRole("button", { name: "Post request" }).click();
   await expect(agent.page).toHaveURL(/\/jobs\/[0-9a-f-]{36}$/);
   const jobUrl = new URL(agent.page.url()).pathname;
   await expect(agent.page.getByRole("heading", { name: "Shenzhen to Melbourne" })).toBeVisible();
   await expect(agent.page.getByText("Your job")).toBeVisible();
 
-  // the poster's own job is hidden from the open feed
+  // In Requester mode the job is listed under My requests...
   await agent.page.goto("/jobs");
+  await expect(agent.page.getByText(CARGO)).toBeVisible();
+  // ...and in Quoter mode the company's own job is hidden from the board it quotes on.
+  await agent.page.getByRole("radio", { name: "Quoter" }).click();
+  await expect(agent.page.getByRole("radio", { name: "Quoter" })).toHaveAttribute("aria-checked", "true");
+  await expect(agent.page.getByText("Job board · Quoter mode")).toBeVisible();
   await expect(agent.page.getByText(CARGO)).toHaveCount(0);
+  await agent.page.getByRole("radio", { name: "Requester" }).click();
+  await expect(agent.page.getByRole("radio", { name: "Requester" })).toHaveAttribute("aria-checked", "true");
 
   // ---- Two forwarders find the job in the feed and send sealed quotes
   const winner = await newUser(browser, "winner");
@@ -105,8 +116,9 @@ test("agent posts, forwarders quote, admin verifies, agent awards, only winner s
   await expect(loser.page.getByText("$999.00").first()).toBeVisible();
   await expect(loser.page.getByText("$1,234.50")).toHaveCount(0);
   await loser.page.goto("/quotes");
-  await expect(loser.page.getByText("Shenzhen to Melbourne")).toBeVisible();
-  await expect(loser.page.getByText("Sent")).toBeVisible();
+  const loserSent = loser.page.getByRole("region", { name: "Sent quotes" });
+  await expect(loserSent.getByText("Shenzhen to Melbourne")).toBeVisible();
+  await expect(loserSent.getByText("Sent", { exact: true })).toBeVisible();
 
   // ---- Agent compares quotes but cannot award while Basic
   await agent.page.goto(jobUrl);
@@ -158,7 +170,7 @@ test("agent posts, forwarders quote, admin verifies, agent awards, only winner s
   await expect(loser.page.getByText(emailFor("agent"))).toHaveCount(0);
   await expect(loser.page.getByText(emailFor("winner"))).toHaveCount(0);
   await loser.page.goto("/quotes");
-  await expect(loser.page.getByText("Lost")).toBeVisible();
+  await expect(loser.page.getByRole("region", { name: "Sent quotes" }).getByText("Lost", { exact: true })).toBeVisible();
 
   // ---- The database agrees: loser cannot read the poster's profile even by direct query
   const dbJob = await admin.from("jobs").select("status").eq("company_id", (await admin.from("companies").select("id").eq("name", AGENT).single()).data!.id).single();

@@ -1,26 +1,22 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
+import { Lock, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { PortPicker, type Port } from "@/components/port-picker";
+import { ScopeStrip } from "@/components/scope-strip";
+import { CONTAINER_TYPES, INCOTERMS } from "@/lib/domain";
 import {
-  CONTAINER_LABELS,
-  CONTAINER_TYPES,
-  INCOTERMS,
-  SERVICES,
-  SERVICE_LABELS,
-} from "@/lib/domain";
+  REPEAT_FREQUENCIES,
+  REPEAT_LABELS,
+  UNLOAD_LABELS,
+  UNLOAD_TYPES,
+  scopeFor,
+  type LegKey,
+} from "@/lib/scope";
+import { cn } from "@/lib/utils";
 import { postJob, type JobFormState } from "./actions";
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <fieldset className="space-y-4 rounded-2xl border border-border bg-card p-4">
-      <legend className="px-1 text-sm font-semibold">{title}</legend>
-      {children}
-    </fieldset>
-  );
-}
 
 export type JobDefaults = {
   direction: "import" | "export";
@@ -38,33 +34,92 @@ export type JobDefaults = {
   flagReefer: boolean;
   flagBmsb: boolean;
   notes: string | null;
+  deliverySuburb: string | null;
+  deliveryPostcode: string | null;
+  unloadType: string | null;
+  repeatFrequency: string;
+  repeatVolume: string | null;
 };
 
-function Check({
-  name,
-  value,
-  label,
-  defaultChecked,
+type Mode = "FCL" | "LCL" | "Air";
+type Services = { destination_charges: boolean; customs_clearance: boolean; delivery: boolean };
+
+const QUICK_TERMS = ["EXW", "FOB", "CIF", "DAP"] as const;
+const CLOSE_OPTIONS = [
+  ["24", "24 h"],
+  ["48", "48 h"],
+  ["72", "72 h"],
+  ["168", "7 days"],
+  ["custom", "Pick a date"],
+] as const;
+
+/** Sensible destination services for each Incoterm; the requester can change them on the strip. */
+function servicesFor(incoterm: string): Services {
+  if (incoterm === "DDP") return { destination_charges: false, customs_clearance: false, delivery: false };
+  if (incoterm === "DAP" || incoterm === "DPU") return { destination_charges: false, customs_clearance: true, delivery: false };
+  return { destination_charges: true, customs_clearance: true, delivery: false };
+}
+
+const LEG_TO_SERVICE: Partial<Record<LegKey, keyof Services>> = {
+  destination: "destination_charges",
+  customs: "customs_clearance",
+  delivery: "delivery",
+};
+
+function Chip({
+  on,
+  onClick,
+  children,
+  className,
 }: {
-  name: string;
-  value?: string;
-  label: string;
-  defaultChecked?: boolean;
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <label className="flex min-h-11 items-center gap-3 text-sm">
-      <input
-        type="checkbox"
-        name={name}
-        value={value}
-        defaultChecked={defaultChecked}
-        className="h-5 w-5 accent-[var(--accent)]"
-      />
-      {label}
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "min-h-11 rounded-xl border px-3 text-sm font-semibold transition-colors",
+        on ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card text-foreground hover:border-sea",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="space-y-3 rounded-[20px] border border-border bg-card p-4 shadow-card">
+      <legend className="sr-only">{title}</legend>
+      <p aria-hidden className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      {children}
+    </fieldset>
+  );
+}
+
+function FlagToggle({ name, label, defaultChecked }: { name: string; label: string; defaultChecked?: boolean }) {
+  return (
+    <label className="relative inline-flex min-h-11 cursor-pointer items-center">
+      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="peer sr-only" />
+      <span className="rounded-xl border border-input bg-card px-3 py-2.5 text-sm font-semibold peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
+        {label}
+      </span>
     </label>
   );
 }
 
+/**
+ * Request a quote in about 30 seconds: route and cargo, the Incoterm (which sets what forwarders
+ * price), delivery suburb, dates. Less common choices sit behind one "Defaults" line.
+ */
 export function PostJobForm({
   ports,
   defaults,
@@ -75,22 +130,67 @@ export function PostJobForm({
   companies?: { id: string; name: string }[];
 }) {
   const [state, action, pending] = useActionState<JobFormState, FormData>(postJob, {});
-  const [mode, setMode] = useState<"FCL" | "LCL" | "Air">(defaults?.mode ?? "FCL");
   const e = state.errors ?? {};
   const today = new Date().toISOString().slice(0, 10);
+
+  const [mode, setMode] = useState<Mode>(defaults?.mode ?? "FCL");
+  const [qty, setQty] = useState<number>(defaults?.containerQty ?? 1);
+  const [ctype, setCtype] = useState<string>(defaults?.containerType ?? "40HC");
+  const [incoterm, setIncoterm] = useState<string>(defaults?.incoterm ?? "FOB");
+  const [services, setServices] = useState<Services>(() =>
+    defaults
+      ? {
+          destination_charges: defaults.services.includes("destination_charges"),
+          customs_clearance: defaults.services.includes("customs_clearance"),
+          delivery: defaults.services.includes("delivery"),
+        }
+      : servicesFor("FOB"),
+  );
+  const [unload, setUnload] = useState<string>(defaults?.unloadType ?? "");
+  const [closeIn, setCloseIn] = useState<string>("48");
+  const [repeat, setRepeat] = useState<string>(defaults?.repeatFrequency ?? "one_off");
+  const [direction, setDirection] = useState<"import" | "export">(defaults?.direction ?? "import");
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const hiddenErrors = ["deadlineDate", "deadlineTime", "notes", "repeatVolume", "closeIn"].some((k) => e[k]);
+  const showMore = moreOpen || hiddenErrors;
+  const picked = (Object.keys(services) as (keyof Services)[]).filter((k) => services[k]);
+  const scope = scopeFor(incoterm, picked);
+  const air = mode === "Air";
+  const closeLabel = CLOSE_OPTIONS.find(([v]) => v === closeIn)?.[1] ?? "48 h";
+
+  const chooseTerm = (t: string) => {
+    setIncoterm(t);
+    setServices(servicesFor(t));
+  };
+  const toggleLeg = (key: LegKey) => {
+    const s = LEG_TO_SERVICE[key];
+    if (s) setServices((prev) => ({ ...prev, [s]: !prev[s] }));
+  };
 
   return (
     <form
       noValidate
-      className="space-y-4"
+      className="space-y-3"
       onSubmit={(ev) => {
         ev.preventDefault();
         const data = new FormData(ev.currentTarget);
         startTransition(() => action(data));
       }}
     >
+      <input type="hidden" name="mode" value={mode} />
+      <input type="hidden" name="incoterm" value={incoterm} />
+      <input type="hidden" name="direction" value={direction} />
+      <input type="hidden" name="closeIn" value={closeIn} />
+      <input type="hidden" name="repeatFrequency" value={repeat} />
+      {mode === "FCL" ? <input type="hidden" name="containerType" value={ctype} /> : null}
+      {services.delivery ? <input type="hidden" name="unloadType" value={unload} /> : null}
+      {picked.map((s) => (
+        <input key={s} type="hidden" name="services" value={s} />
+      ))}
+
       {companies ? (
-        <Section title="Admin: post on behalf of">
+        <Card title="Admin: post on behalf of">
           <Field label="Company" htmlFor="onBehalfOf">
             <Select id="onBehalfOf" name="onBehalfOf" defaultValue="">
               <option value="">My own company</option>
@@ -101,155 +201,231 @@ export function PostJobForm({
               ))}
             </Select>
           </Field>
-        </Section>
+        </Card>
       ) : null}
 
-      <Section title="Shipment">
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Direction" htmlFor="direction" error={e.direction}>
-            <Select id="direction" name="direction" defaultValue={defaults?.direction ?? "import"} aria-invalid={Boolean(e.direction)}>
-              <option value="import">Import to ANZ</option>
-              <option value="export">Export from ANZ</option>
-            </Select>
+      <Card title="Route and cargo">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="From" htmlFor="originPortId" error={e.originPortId}>
+            <PortPicker id="originPortId" name="originPortId" ports={ports} defaultPortId={defaults?.originPortId} invalid={Boolean(e.originPortId)} />
           </Field>
-          <Field label="Incoterm" htmlFor="incoterm" error={e.incoterm}>
-            <Select id="incoterm" name="incoterm" defaultValue={defaults?.incoterm ?? "FOB"} aria-invalid={Boolean(e.incoterm)}>
-              {INCOTERMS.map((t) => (
+          <Field label="To" htmlFor="destinationPortId" error={e.destinationPortId}>
+            <PortPicker
+              id="destinationPortId"
+              name="destinationPortId"
+              ports={ports}
+              defaultPortId={defaults?.destinationPortId}
+              invalid={Boolean(e.destinationPortId)}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Mode">
+          <Chip on={mode === "FCL"} onClick={() => setMode("FCL")}>Sea FCL</Chip>
+          <Chip on={mode === "LCL"} onClick={() => setMode("LCL")}>Sea LCL</Chip>
+          <Chip on={mode === "Air"} onClick={() => setMode("Air")}>Air</Chip>
+        </div>
+        {mode === "FCL" ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center overflow-hidden rounded-xl border border-input">
+              <button type="button" aria-label="One fewer container" onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-11 w-11 place-items-center bg-muted/60">
+                <Minus className="h-4 w-4" aria-hidden />
+              </button>
+              <label htmlFor="containerQty" className="sr-only">
+                Number of containers
+              </label>
+              <input
+                id="containerQty"
+                name="containerQty"
+                inputMode="numeric"
+                value={qty}
+                onChange={(ev) => setQty(Math.max(1, Math.min(999, Number.parseInt(ev.target.value, 10) || 1)))}
+                className="h-11 w-12 bg-card text-center text-lg font-bold"
+                aria-invalid={Boolean(e.containerQty)}
+              />
+              <button type="button" aria-label="One more container" onClick={() => setQty((q) => Math.min(999, q + 1))} className="grid h-11 w-11 place-items-center bg-muted/60">
+                <Plus className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+            <span className="font-bold text-muted-foreground" aria-hidden>
+              ×
+            </span>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Container type">
+              {CONTAINER_TYPES.map((t) => (
+                <Chip key={t} on={ctype === t} onClick={() => setCtype(t)} className="px-2.5">
+                  {t}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Weight (kg)" htmlFor="weightKg" error={e.weightKg}>
+              <Input id="weightKg" name="weightKg" type="number" inputMode="decimal" step="any" min={0} defaultValue={defaults?.weightKg ?? undefined} aria-invalid={Boolean(e.weightKg)} />
+            </Field>
+            <Field label="Volume (cbm)" htmlFor="volumeCbm" error={e.volumeCbm}>
+              <Input id="volumeCbm" name="volumeCbm" type="number" inputMode="decimal" step="any" min={0} defaultValue={defaults?.volumeCbm ?? undefined} aria-invalid={Boolean(e.volumeCbm)} />
+            </Field>
+          </div>
+        )}
+        <Field label="What is it?" htmlFor="cargoDescription" error={e.cargoDescription} hint="A short line is enough, for example: furniture and homewares, palletised.">
+          <Input id="cargoDescription" name="cargoDescription" defaultValue={defaults?.cargoDescription} aria-invalid={Boolean(e.cargoDescription)} />
+        </Field>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Special cargo">
+          <FlagToggle name="flagDg" label="Dangerous goods" defaultChecked={defaults?.flagDg} />
+          <FlagToggle name="flagReefer" label="Reefer" defaultChecked={defaults?.flagReefer} />
+          <FlagToggle name="flagBmsb" label="BMSB risk" defaultChecked={defaults?.flagBmsb} />
+        </div>
+      </Card>
+
+      <Card title="Incoterm and what forwarders price">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Incoterm">
+          {QUICK_TERMS.map((t) => (
+            <Chip key={t} on={incoterm === t} onClick={() => chooseTerm(t)}>
+              {t}
+            </Chip>
+          ))}
+          <label className="min-w-28 flex-1">
+            <span className="sr-only">Other Incoterm</span>
+            <Select
+              value={(QUICK_TERMS as readonly string[]).includes(incoterm) ? "" : incoterm}
+              onChange={(ev) => ev.target.value && chooseTerm(ev.target.value)}
+            >
+              <option value="">More…</option>
+              {INCOTERMS.filter((t) => !(QUICK_TERMS as readonly string[]).includes(t)).map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
               ))}
             </Select>
-          </Field>
+          </label>
         </div>
-        <Field label="Mode" htmlFor="mode" error={e.mode}>
-          <Select
-            id="mode"
-            name="mode"
-            value={mode}
-            onChange={(ev) => setMode(ev.target.value as "FCL" | "LCL" | "Air")}
-            aria-invalid={Boolean(e.mode)}
-          >
-            <option value="FCL">FCL (full container)</option>
-            <option value="LCL">LCL (part container)</option>
-            <option value="Air">Air freight</option>
-          </Select>
-        </Field>
-        <Field label="Origin port" htmlFor="originPortId" error={e.originPortId}>
-          <PortPicker
-            id="originPortId"
-            name="originPortId"
-            ports={ports}
-            defaultPortId={defaults?.originPortId}
-            invalid={Boolean(e.originPortId)}
-          />
-        </Field>
-        <Field label="Destination port" htmlFor="destinationPortId" error={e.destinationPortId}>
-          <PortPicker
-            id="destinationPortId"
-            name="destinationPortId"
-            ports={ports}
-            defaultPortId={defaults?.destinationPortId}
-            invalid={Boolean(e.destinationPortId)}
-          />
-        </Field>
-      </Section>
+        <p className="text-sm font-bold">
+          Forwarders price: <span className="text-sea-ink">{scope.summary}</span>
+        </p>
+        <ScopeStrip legs={scope.legs} air={air} onToggle={toggleLeg} />
+        <p className="text-xs text-muted-foreground">Tap Dest., Customs or Delivery to add or remove it. Pickup and freight follow the Incoterm.</p>
+      </Card>
 
-      <Section title="Cargo">
-        {mode === "FCL" ? (
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Container type" htmlFor="containerType" error={e.containerType}>
-              <Select id="containerType" name="containerType" defaultValue={defaults?.containerType ?? "40HC"} aria-invalid={Boolean(e.containerType)}>
-                {CONTAINER_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t} ({CONTAINER_LABELS[t]})
-                  </option>
-                ))}
-              </Select>
+      {services.delivery ? (
+        <Card title="Delivery">
+          <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-3">
+            <Field label="Suburb" htmlFor="deliverySuburb" error={e.deliverySuburb}>
+              <Input id="deliverySuburb" name="deliverySuburb" autoComplete="address-level2" defaultValue={defaults?.deliverySuburb ?? undefined} aria-invalid={Boolean(e.deliverySuburb)} />
             </Field>
-            <Field label="Quantity" htmlFor="containerQty" error={e.containerQty}>
-              <Input
-                id="containerQty"
-                name="containerQty"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                defaultValue={defaults?.containerQty ?? 1}
-                aria-invalid={Boolean(e.containerQty)}
-              />
+            <Field label="Postcode" htmlFor="deliveryPostcode" error={e.deliveryPostcode}>
+              <Input id="deliveryPostcode" name="deliveryPostcode" inputMode="numeric" maxLength={4} autoComplete="postal-code" defaultValue={defaults?.deliveryPostcode ?? undefined} aria-invalid={Boolean(e.deliveryPostcode)} />
             </Field>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Weight (kg)" htmlFor="weightKg" error={e.weightKg}>
-              <Input
-                id="weightKg"
-                name="weightKg"
-                defaultValue={defaults?.weightKg ?? undefined}
-                type="number"
-                inputMode="decimal"
-                step="any"
-                min={0}
-                aria-invalid={Boolean(e.weightKg)}
-              />
-            </Field>
-            <Field label="Volume (cbm)" htmlFor="volumeCbm" error={e.volumeCbm}>
-              <Input
-                id="volumeCbm"
-                name="volumeCbm"
-                defaultValue={defaults?.volumeCbm ?? undefined}
-                type="number"
-                inputMode="decimal"
-                step="any"
-                min={0}
-                aria-invalid={Boolean(e.volumeCbm)}
-              />
-            </Field>
+          <div>
+            <p id="unload-label" className="mb-1.5 text-sm font-semibold">
+              How will it be unloaded?
+            </p>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="unload-label">
+              {UNLOAD_TYPES.map((u) => (
+                <Chip key={u} on={unload === u} onClick={() => setUnload(u)}>
+                  {UNLOAD_LABELS[u]}
+                </Chip>
+              ))}
+            </div>
+            {e.unloadType ? (
+              <p role="alert" className="mt-1 text-sm text-destructive">
+                {e.unloadType}
+              </p>
+            ) : null}
           </div>
-        )}
-        <Field label="Cargo description" htmlFor="cargoDescription" error={e.cargoDescription}>
-          <Textarea
-            id="cargoDescription"
-            name="cargoDescription"
-            defaultValue={defaults?.cargoDescription}
-            aria-invalid={Boolean(e.cargoDescription)} />
-        </Field>
-        <div>
-          <p className="mb-1 text-sm font-medium">Cargo flags</p>
-          <Check name="flagDg" label="Dangerous goods" defaultChecked={defaults?.flagDg} />
-          <Check name="flagReefer" label="Reefer (temperature controlled)" defaultChecked={defaults?.flagReefer} />
-          <Check name="flagBmsb" label="BMSB-risk goods" defaultChecked={defaults?.flagBmsb} />
-        </div>
-        <Field label="Cargo ready date" htmlFor="readyDate" error={e.readyDate}>
-          <Input id="readyDate" name="readyDate" type="date" min={today} aria-invalid={Boolean(e.readyDate)} />
-        </Field>
-      </Section>
+          <p className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+            The suburb shows on the board. We ask for the street address only when you award, and share it with the winner alone.
+          </p>
+        </Card>
+      ) : null}
 
-      <Section title="Services needed">
-        {SERVICES.map((s) => (
-          <Check key={s} name="services" value={s} label={SERVICE_LABELS[s]} defaultChecked={defaults?.services.includes(s)} />
-        ))}
-      </Section>
-
-      <Section title="Quote deadline">
+      <Card title="When">
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Date" htmlFor="deadlineDate" error={e.deadlineDate}>
-            <Input id="deadlineDate" name="deadlineDate" type="date" min={today} aria-invalid={Boolean(e.deadlineDate)} />
+          <Field label="Ready on" htmlFor="readyDate" error={e.readyDate}>
+            <Input id="readyDate" name="readyDate" type="date" min={today} aria-invalid={Boolean(e.readyDate)} />
           </Field>
-          <Field label="Time (UTC)" htmlFor="deadlineTime" error={e.deadlineTime}>
-            <Input
-              id="deadlineTime"
-              name="deadlineTime"
-              type="time"
-              defaultValue="09:00"
-              aria-invalid={Boolean(e.deadlineTime)}
-            />
+          <Field label="Needed by (optional)" htmlFor="requiredBy" error={e.requiredBy}>
+            <Input id="requiredBy" name="requiredBy" type="date" min={today} aria-invalid={Boolean(e.requiredBy)} />
           </Field>
         </div>
-        <Field label="Notes (optional)" htmlFor="notes" error={e.notes}>
-          <Textarea id="notes" name="notes" defaultValue={defaults?.notes ?? undefined} aria-invalid={Boolean(e.notes)} />
-        </Field>
-      </Section>
+      </Card>
+
+      <section className="rounded-[20px] border border-border bg-card p-4 shadow-card">
+        <button
+          type="button"
+          onClick={() => setMoreOpen((o) => !o)}
+          aria-expanded={showMore}
+          aria-controls="defaults-panel"
+          className="flex min-h-11 w-full items-center gap-3 text-left"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">Defaults</span>
+            <span className="mt-1 block text-sm font-semibold">
+              Closes in {closeLabel} · {REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]} ·{" "}
+              {direction === "import" ? "Import to ANZ" : "Export from ANZ"}
+            </span>
+          </span>
+          <span className="text-sm font-bold text-accent">{showMore ? "Done" : "Change"}</span>
+        </button>
+        <div id="defaults-panel" hidden={!showMore} className="mt-3 space-y-4">
+          <div>
+            <p id="close-label" className="mb-1.5 text-sm font-semibold">
+              Quotes close in
+            </p>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="close-label">
+              {CLOSE_OPTIONS.map(([v, label]) => (
+                <Chip key={v} on={closeIn === v} onClick={() => setCloseIn(v)}>
+                  {label}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          {closeIn === "custom" ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Deadline date" htmlFor="deadlineDate" error={e.deadlineDate}>
+                <Input id="deadlineDate" name="deadlineDate" type="date" min={today} aria-invalid={Boolean(e.deadlineDate)} />
+              </Field>
+              <Field label="Time (UTC)" htmlFor="deadlineTime" error={e.deadlineTime}>
+                <Input id="deadlineTime" name="deadlineTime" type="time" defaultValue="09:00" aria-invalid={Boolean(e.deadlineTime)} />
+              </Field>
+            </div>
+          ) : e.deadlineDate ? (
+            <p role="alert" className="text-sm text-destructive">
+              {e.deadlineDate}
+            </p>
+          ) : null}
+          <div>
+            <p id="repeat-label" className="mb-1.5 text-sm font-semibold">
+              Is this regular work?
+            </p>
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4" role="group" aria-labelledby="repeat-label">
+              {REPEAT_FREQUENCIES.map((r) => (
+                <Chip key={r} on={repeat === r} onClick={() => setRepeat(r)}>
+                  {REPEAT_LABELS[r]}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          {repeat !== "one_off" ? (
+            <Field label="Expected volume each time" htmlFor="repeatVolume" error={e.repeatVolume} hint="Regular work gets a green badge on the board and attracts more quotes.">
+              <Input id="repeatVolume" name="repeatVolume" defaultValue={defaults?.repeatVolume ?? undefined} placeholder="About 4 x 40HC" aria-invalid={Boolean(e.repeatVolume)} />
+            </Field>
+          ) : null}
+          <div>
+            <p id="direction-label" className="mb-1.5 text-sm font-semibold">
+              Direction
+            </p>
+            <div className="grid grid-cols-2 gap-1.5" role="group" aria-labelledby="direction-label">
+              <Chip on={direction === "import"} onClick={() => setDirection("import")}>Import to ANZ</Chip>
+              <Chip on={direction === "export"} onClick={() => setDirection("export")}>Export from ANZ</Chip>
+            </div>
+          </div>
+          <Field label="Notes (optional)" htmlFor="notes" error={e.notes}>
+            <Textarea id="notes" name="notes" defaultValue={defaults?.notes ?? undefined} aria-invalid={Boolean(e.notes)} />
+          </Field>
+        </div>
+      </section>
 
       {state.message ? (
         <p role="alert" className="text-sm text-destructive">
@@ -261,9 +437,21 @@ export function PostJobForm({
           Please fix the highlighted fields.
         </p>
       ) : null}
-      <Button type="submit" variant="accent" size="full" disabled={pending}>
-        {pending ? "Posting…" : "Post job"}
-      </Button>
+
+      <div className="sticky bottom-[5.5rem] z-10 flex items-center gap-3 rounded-[22px] bg-primary p-3 pl-4 text-primary-foreground shadow-lift md:bottom-4">
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-bold">
+            {scope.summary} · {mode === "FCL" ? `${qty} × ${ctype}` : mode === "Air" ? "Air" : "Sea LCL"}
+          </span>
+          <span className="block truncate text-xs text-cyan-100">
+            {incoterm} · closes in {closeLabel}
+            {repeat !== "one_off" ? ` · ${REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]}` : ""}
+          </span>
+        </span>
+        <Button type="submit" disabled={pending} className="shrink-0 bg-cyan-300 text-primary hover:bg-cyan-200">
+          {pending ? "Posting…" : "Post request"}
+        </Button>
+      </div>
     </form>
   );
 }

@@ -42,7 +42,7 @@ export function MyQuote({ quote, jobId, canChange }: { quote: QuoteRow; jobId: s
         {quote.notes ? <p className="mt-1 whitespace-pre-wrap">{quote.notes}</p> : null}
       </div>
       <p className="text-xs text-muted-foreground">
-        Sealed: only the job poster can see this quote. Other forwarders cannot.
+        Sealed: only the requester can see this quote. Other forwarders cannot.
       </p>
       {canChange && quote.status === "sent" ? (
         <div className="flex flex-wrap gap-2">

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  actionsFor,
   buildActionQueue,
   buildJobScorecard,
   buildLaneDemand,
@@ -70,14 +71,14 @@ describe("helpers", () => {
 describe("buildActionQueue", () => {
   const base = { isVerified: true, myJobs: [], myQuotes: [], openJobs: [], myCompanyId: "me", now };
 
-  it("tells an unverified poster to get verified once quotes are waiting", () => {
+  it("tells an unverified requester to get verified once quotes are waiting", () => {
     const j = job({ id: "a", quotes: [{ id: "q1", status: "sent", created_at: at(-2), lines: lines(1) }] });
     const items = buildActionQueue({ ...base, isVerified: false, myJobs: [j] });
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({ id: "get-verified", tone: "danger", href: "/profile" });
   });
 
-  it("lets a verified poster go straight to comparing quotes", () => {
+  it("lets a verified requester go straight to comparing quotes", () => {
     const j = job({ id: "a", quotes: [{ id: "q1", status: "sent", created_at: at(-2), lines: lines(1) }] });
     const items = buildActionQueue({ ...base, myJobs: [j] });
     expect(items[0]).toMatchObject({ id: "award-a", tone: "success", href: "/jobs/a" });
@@ -119,6 +120,18 @@ describe("buildActionQueue", () => {
     const won = quote({ id: "w", status: "won" });
     const mixed = buildActionQueue({ ...base, myJobs: [job({ id: "z", deadline_at: at(3) })], myQuotes: [won] });
     expect(mixed.map((i) => i.tone)).toEqual(["warning", "success"]);
+  });
+
+  it("gives every item a side and splits them between Requester and Quoter", () => {
+    const waiting = job({ id: "a", quotes: [{ id: "q1", status: "sent", created_at: at(-2), lines: lines(1) }] });
+    const soon = job({ id: "soon", deadline_at: at(5) });
+    const openJobs = [{ id: "near", company_id: "other", deadline_at: at(10), mode: "FCL" as const, origin: sha, destination: syd }];
+    const myQuotes = [quote({ id: "w", status: "won" }), quote({ id: "e", valid_until: day(2) })];
+    const items = buildActionQueue({ ...base, myJobs: [waiting, soon], myQuotes, openJobs, limit: 20 });
+    expect(items.every((i) => i.side === "requester" || i.side === "quoter")).toBe(true);
+    expect(actionsFor(items, "requester").map((i) => i.id)).toEqual(["closing-soon", "award-a"]);
+    expect(actionsFor(items, "quoter").map((i) => i.id)).toEqual(["expiring-e", "won-w", "closing-open-near"]);
+    expect(actionsFor(items, "quoter", 1)).toHaveLength(1);
   });
 
   it("is empty when there is nothing to do", () => {
@@ -233,7 +246,7 @@ describe("buildJobScorecard", () => {
     expect(s.awardsCompared).toBe(0);
   });
 
-  it("notices when the poster did not pick the cheapest quote", () => {
+  it("notices when the requester did not pick the cheapest quote", () => {
     const jobs = [job({ id: "a", status: "awarded", quotes: [q("1", 100, "lost"), q("2", 180, "won")] })];
     const s = buildJobScorecard(jobs, now);
     expect(s).toMatchObject({ lowestPicked: 0, awardsCompared: 1 });

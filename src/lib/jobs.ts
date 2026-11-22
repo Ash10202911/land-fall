@@ -1,4 +1,5 @@
 import { CONTAINER_LABELS, SERVICE_LABELS } from "@/lib/domain";
+import type { REPEAT_FREQUENCIES, UNLOAD_TYPES } from "@/lib/scope";
 
 export type PortRef = { code: string; name: string; country: string };
 
@@ -24,6 +25,12 @@ export type JobRow = {
   status: "open" | "awarded" | "cancelled";
   awarded_quote_id: string | null;
   created_at: string;
+  delivery_suburb: string | null;
+  delivery_postcode: string | null;
+  unload_type: (typeof UNLOAD_TYPES)[number] | null;
+  repeat_frequency: (typeof REPEAT_FREQUENCIES)[number];
+  repeat_volume: string | null;
+  required_by: string | null;
   origin: PortRef;
   destination: PortRef;
   company: { id: string; name: string; country: string; trust_level: "basic" | "verified" } | null;
@@ -34,6 +41,7 @@ export const JOB_SELECT = `
   id, company_id, created_by, direction, incoterm, mode, container_type, container_qty,
   weight_kg, volume_cbm, cargo_description, ready_date, services, flag_dg, flag_reefer,
   flag_bmsb, deadline_at, notes, status, awarded_quote_id, created_at,
+  delivery_suburb, delivery_postcode, unload_type, repeat_frequency, repeat_volume, required_by,
   origin:ports!origin_port_id(code, name, country),
   destination:ports!destination_port_id(code, name, country),
   company:companies(id, name, country, trust_level)

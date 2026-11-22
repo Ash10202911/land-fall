@@ -11,7 +11,7 @@ async function loadRoute(admin: NonNullable<ReturnType<typeof createAdminClient>
   const { data } = await admin
     .from("jobs")
     .select(
-      "id, created_by, company:companies(name), origin:ports!origin_port_id(name), destination:ports!destination_port_id(name), poster:profiles!created_by(email)",
+      "id, created_by, company:companies(name), origin:ports!origin_port_id(name), destination:ports!destination_port_id(name), requester:profiles!created_by(email)",
     )
     .eq("id", jobId)
     .single();
@@ -21,12 +21,12 @@ async function loadRoute(admin: NonNullable<ReturnType<typeof createAdminClient>
     company: One<{ name: string }>;
     origin: One<{ name: string }>;
     destination: One<{ name: string }>;
-    poster: One<{ email: string }>;
+    requester: One<{ email: string }>;
   };
   return {
     route: `${first(row.origin)?.name ?? "Origin"} to ${first(row.destination)?.name ?? "Destination"}`,
-    posterCompany: first(row.company)?.name ?? "The poster",
-    posterEmail: first(row.poster)?.email ?? null,
+    requesterCompany: first(row.company)?.name ?? "The requester",
+    requesterEmail: first(row.requester)?.email ?? null,
   };
 }
 
@@ -38,7 +38,7 @@ export async function notifyNewQuote(args: { jobId: string; quoteId: string }): 
     const admin = createAdminClient();
     if (!admin) return;
     const job = await loadRoute(admin, args.jobId);
-    if (!job?.posterEmail) return;
+    if (!job?.requesterEmail) return;
     const { data } = await admin
       .from("quotes")
       .select("company_id, company:companies(name)")
@@ -47,7 +47,7 @@ export async function notifyNewQuote(args: { jobId: string; quoteId: string }): 
     const row = data as unknown as { company_id: string; company: One<{ name: string }> } | null;
     if (!row) return;
 
-    // Debounce: a company that withdraws and resubmits must not email the poster again each time.
+    // Debounce: a company that withdraws and resubmits must not email the requester again each time.
     const { count } = await admin
       .from("quotes")
       .select("id", { count: "exact", head: true })
@@ -61,7 +61,7 @@ export async function notifyNewQuote(args: { jobId: string; quoteId: string }): 
       baseUrl: appUrl(),
       jobId: args.jobId,
       route: job.route,
-      poster: { email: job.posterEmail, company: job.posterCompany },
+      requester: { email: job.requesterEmail, company: job.requesterCompany },
       quoterCompany,
     });
     await Promise.all(emails.map((m) => sendEmail(m)));
@@ -103,7 +103,7 @@ export async function notifyAward(args: { jobId: string; winningQuoteId: string 
       baseUrl: appUrl(),
       jobId: args.jobId,
       route: job.route,
-      posterCompany: job.posterCompany,
+      requesterCompany: job.requesterCompany,
       winner,
       losers: losers.filter((l) => l.email),
     });
@@ -113,7 +113,7 @@ export async function notifyAward(args: { jobId: string; winningQuoteId: string 
   }
 }
 
-/** Tells every company that had a live quote that the poster cancelled the job. Never throws. */
+/** Tells every company that had a live quote that the requester cancelled the job. Never throws. */
 export async function notifyJobCancelled(args: { jobId: string }): Promise<void> {
   try {
     const admin = createAdminClient();
@@ -135,7 +135,7 @@ export async function notifyJobCancelled(args: { jobId: string }): Promise<void>
       baseUrl: appUrl(),
       jobId: args.jobId,
       route: job.route,
-      posterCompany: job.posterCompany,
+      requesterCompany: job.requesterCompany,
       quoters,
     });
     await Promise.all(emails.map((m) => sendEmail(m)));

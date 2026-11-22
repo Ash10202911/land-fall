@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
 import { PostJobForm, type JobDefaults } from "./post-job-form";
 
-export const metadata = { title: "Post a job" };
+export const metadata = { title: "Request a quote" };
 
 export default async function PostPage({ searchParams }: { searchParams: Promise<{ repeat?: string }> }) {
   const me = await requireMember();
@@ -20,7 +20,7 @@ export default async function PostPage({ searchParams }: { searchParams: Promise
   const { data: last } = await supabase
     .from("jobs")
     .select(
-      "direction, incoterm, mode, origin_port_id, destination_port_id, container_type, container_qty, weight_kg, volume_cbm, cargo_description, services, flag_dg, flag_reefer, flag_bmsb, notes",
+      "direction, incoterm, mode, origin_port_id, destination_port_id, container_type, container_qty, weight_kg, volume_cbm, cargo_description, services, flag_dg, flag_reefer, flag_bmsb, notes, delivery_suburb, delivery_postcode, unload_type, repeat_frequency, repeat_volume",
     )
     .eq("company_id", me.company.id)
     .order("created_at", { ascending: false })
@@ -45,6 +45,11 @@ export default async function PostPage({ searchParams }: { searchParams: Promise
           flagReefer: last.flag_reefer,
           flagBmsb: last.flag_bmsb,
           notes: last.notes,
+          deliverySuburb: last.delivery_suburb,
+          deliveryPostcode: last.delivery_postcode,
+          unloadType: last.unload_type,
+          repeatFrequency: last.repeat_frequency ?? "one_off",
+          repeatVolume: last.repeat_volume,
         }
       : undefined;
 
@@ -61,26 +66,32 @@ export default async function PostPage({ searchParams }: { searchParams: Promise
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Post a job</h1>
+    <div className="mx-auto w-full max-w-3xl space-y-4">
+      <div>
+        <p className="text-sm font-semibold text-accent">Requester mode</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Request a quote</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          About 30 seconds. Verified forwarders see it on their board and send sealed quotes only you can read.
+        </p>
+      </div>
       {me.company.status === "suspended" ? (
         <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
-          Your company is suspended and cannot post jobs.
+          Your company is suspended and cannot request quotes.
         </p>
       ) : (
         <>
           {last && !defaults ? (
             <Link
               href="/post?repeat=1"
-              className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium"
+              className="flex min-h-14 items-center gap-3 rounded-2xl border border-border bg-card px-4 text-sm font-semibold shadow-card"
             >
-              <Copy className="h-4 w-4" aria-hidden />
+              <Copy className="h-5 w-5 text-sea" aria-hidden />
               Repeat last job
             </Link>
           ) : null}
           {defaults ? (
-            <p role="status" className="rounded-md bg-muted p-3 text-sm">
-              Filled in from your last job. Set a new ready date and quote deadline before posting.
+            <p role="status" className="rounded-xl bg-sea-soft p-3 text-sm text-sea-ink">
+              Filled in from your last job. Set a new ready date before posting.
             </p>
           ) : null}
           <PostJobForm key={defaults ? "repeat" : "new"} ports={ports ?? []} defaults={defaults} companies={companies} />

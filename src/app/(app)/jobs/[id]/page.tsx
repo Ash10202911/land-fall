@@ -7,7 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
 import { JOB_SELECT, cargoSummary, normaliseJob, portLabel } from "@/lib/jobs";
 import { QuoterSection } from "./quoter-section";
-import { PosterSection } from "./poster-section";
+import { RequesterSection } from "./requester-section";
+import { ScopeStrip } from "@/components/scope-strip";
+import { REPEAT_LABELS, UNLOAD_LABELS, scopeFor } from "@/lib/scope";
 import { AwardContacts } from "./contacts";
 import { CONTAINER_LABELS, SERVICE_LABELS, formatDate, formatDateTime, isJobClosed } from "@/lib/domain";
 
@@ -41,11 +43,13 @@ export default async function JobDetailPage({
   if (!data) notFound();
 
   const job = normaliseJob(data);
-  const isPoster = job.company_id === me.company.id;
+  // Which side a company sees always follows ownership, never the Requester / Quoter switch.
+  const isRequester = job.company_id === me.company.id;
+  const scope = scopeFor(job.incoterm, job.services);
   const closed = isJobClosed(job);
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-3xl space-y-4">
       <Link href="/jobs" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Jobs
@@ -65,7 +69,7 @@ export default async function JobDetailPage({
           ) : (
             <Badge tone="success">Open for quotes</Badge>
           )}
-          {isPoster ? <Badge tone="verified">Your job</Badge> : null}
+          {isRequester ? <Badge tone="verified">Your job</Badge> : null}
           <span className="text-sm text-muted-foreground">
             Posted by {job.company?.name ?? "Unknown"}
             {job.company?.trust_level === "verified" ? " (Verified)" : ""}
@@ -76,7 +80,7 @@ export default async function JobDetailPage({
 
       {job.status === "cancelled" ? (
         <p role="status" className="rounded-md bg-muted p-3 text-sm">
-          The poster cancelled this job. It can no longer be quoted.
+          The requester cancelled this job. It can no longer be quoted.
         </p>
       ) : null}
 
@@ -92,6 +96,13 @@ export default async function JobDetailPage({
         </p>
       ) : null}
 
+      <Card className="space-y-3">
+        <p className="font-bold">
+          Forwarders price: <span className="text-sea-ink">{scope.summary}</span>
+        </p>
+        <ScopeStrip legs={scope.legs} air={job.mode === "Air"} />
+      </Card>
+
       <Card>
         <dl className="divide-y divide-border">
           <Row label="Direction">{job.direction === "import" ? "Import" : "Export"}</Row>
@@ -104,7 +115,19 @@ export default async function JobDetailPage({
             {job.mode === "FCL" && job.container_type ? ` (${CONTAINER_LABELS[job.container_type]})` : ""}
           </Row>
           <Row label="Cargo ready">{formatDate(job.ready_date)}</Row>
+          <Row label="Needed by">{job.required_by ? formatDate(job.required_by) : "Flexible"}</Row>
           <Row label="Quotes due">{formatDateTime(job.deadline_at)}</Row>
+          {job.delivery_suburb ? (
+            <Row label="Deliver to">
+              {job.delivery_suburb} {job.delivery_postcode}
+              {job.unload_type ? ` · ${UNLOAD_LABELS[job.unload_type]}` : ""}
+            </Row>
+          ) : null}
+          <Row label="Regular work">
+            {job.repeat_frequency === "one_off"
+              ? "One-off"
+              : `${REPEAT_LABELS[job.repeat_frequency]}${job.repeat_volume ? ` · ${job.repeat_volume}` : ""}`}
+          </Row>
           <Row label="Services">
             {job.services.length > 0 ? job.services.map((s) => SERVICE_LABELS[s]).join(", ") : "None specified"}
           </Row>
@@ -122,10 +145,10 @@ export default async function JobDetailPage({
         ) : null}
       </Card>
 
-      {job.status === "awarded" ? <AwardContacts jobId={job.id} /> : null}
+      {job.status === "awarded" ? <AwardContacts jobId={job.id} suburb={job.delivery_suburb ? `${job.delivery_suburb} ${job.delivery_postcode ?? ""}`.trim() : null} /> : null}
 
-      {isPoster ? (
-        <PosterSection job={job} company={me.company} awardError={awardError} />
+      {isRequester ? (
+        <RequesterSection job={job} company={me.company} awardError={awardError} />
       ) : (
         <QuoterSection job={job} me={me} edit={edit === "1"} />
       )}

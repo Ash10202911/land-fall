@@ -58,6 +58,23 @@ Written by Claude Code during `/build-core`.
 | - | Decision: admin stats are counts and timings only | noted | Spec says admins have no access to quote contents |
 | - | Nav: Dashboard added as a fifth tab | noted | Spec listed four tabs; the request added a dashboard |
 
+## v2 phase 1: foundation (plan in docs/V2_PLAN.md, switch brief in docs/REQUESTER_QUOTER_VIEWS.md)
+| Item | Status | Evidence |
+|---|---|---|
+| Migration 20261122000100: delivery suburb, postcode, unload type, regular work, needed-by date | done | RLS tests sec9-v2-job-details.test.ts (delivery needs a place, postcode format, needed-by after ready) |
+| Street address released only at award (award_quote_with_address, job_delivery_addresses) | done | sec9: no direct writes, award rolls back without an address, Basic requester still blocked, only requester and winner can read it |
+| Competition band (job_quote_bands): none / few / busy, never a count | done | sec9: only band and job_id columns, closed and awarded jobs excluded, signed-out refused |
+| Ocean + sky theme | done | Tokens in globals.css; text colours meet AA |
+| Requester / Quoter switch (sb_mode cookie, Zod-validated, defaults by role) | done | mode.test.ts; e2e modes.spec.ts (lands by role, switches, persists after reload) |
+| Dashboard removed; parts moved | done | /dashboard redirects to /jobs (e2e); needs-attention and job scorecard on My requests, quote scorecard and lane demand on My quotes, marketplace health on /admin (e2e) |
+| Map-first job cards: route map, flags, NEW since last visit, countdown ring, scope strip, containers, competition band | done | geo.test.ts (coordinates for every seeded port, framing, Pacific crossing), scope tests; e2e checks route map and competition band |
+| Quick Request a quote form | done | job.test.ts (new fields, quote window presets); e2e journey and lifecycle post through it |
+| Poster renamed Requester in screen text, code names and emails | done | email and lifecycle unit tests updated to the new wording; database function still returns 'poster', mapped in contacts.tsx |
+| - Decision: menus have three items per mode | noted | Insights and My lanes arrive in later phases; Profile holds the admin link as before |
+| - Decision: flags use emoji | noted | They show as letters (CN, AU) on Windows desktop browsers; phones show flags |
+| - Decision: world outline is defined once per page | noted | Cards reference it with use; 62 cards went from 2.7 MB to 1.5 MB of HTML in development |
+| Checks | pass | lint clean; typecheck clean; npm test 80 passed (11 files); test:rls 83 passed (10 files) after db reset; next build compiled; Playwright 5 passed on iPhone 13 (journey, lifecycle, 3 mode tests) |
+
 ## Definition of done
 | # | Item | Evidence | Pass |
 |---|---|---|---|

@@ -1,29 +1,36 @@
 @import "tailwindcss";
 
 /*
-  Southbound palette ("harbour"): ink navy for structure, electric indigo as the single action colour,
-  a fresh sea-green for trust and success, warm coral reserved for risk. Flat surfaces (no gradients).
+  Southbound palette ("ocean + sky"): deep ocean navy for structure, ocean teal for sea freight and the
+  main action colour, sky blue for air freight. Red only for dangerous goods and short deadlines.
+  Text colours meet WCAG AA on their backgrounds. Flat surfaces (no gradients).
 */
 :root {
-  --background: #f4f6fb;
-  --foreground: #0b1324;
+  --background: #f2f9fc;
+  --foreground: #0b2a3c;
   --card: #ffffff;
-  --card-foreground: #0b1324;
-  --muted: #eceff7;
-  --muted-foreground: #5a6683;
-  --border: #e1e6f1;
-  --input: #cdd5e6;
-  --primary: #111b36;
+  --card-foreground: #0b2a3c;
+  --muted: #e3f0f6;
+  --muted-foreground: #3f5b6b;
+  --border: #d4e8f2;
+  --input: #c9dfea;
+  --primary: #0c4a6e;
   --primary-foreground: #ffffff;
-  --accent: #4259f4;
+  --accent: #0e7490;
   --accent-foreground: #ffffff;
-  --accent-soft: #e9ecff;
-  --destructive: #d92d4b;
-  --success: #0f9d73;
-  --warning: #b86a00;
-  --ring: #4259f4;
-  --shadow-card: 0 1px 2px rgb(17 27 54 / 0.04), 0 6px 18px -8px rgb(17 27 54 / 0.12);
-  --shadow-lift: 0 2px 4px rgb(17 27 54 / 0.06), 0 14px 28px -12px rgb(66 89 244 / 0.28);
+  --accent-soft: #cffafe;
+  --sea: #0891b2;
+  --sea-soft: #ecfeff;
+  --sea-ink: #155e75;
+  --air: #0ea5e9;
+  --air-soft: #f0f9ff;
+  --air-ink: #075985;
+  --destructive: #b91c1c;
+  --success: #15803d;
+  --warning: #a16207;
+  --ring: #0891b2;
+  --shadow-card: 0 1px 2px rgb(12 74 110 / 0.05), 0 8px 20px -12px rgb(12 74 110 / 0.35);
+  --shadow-lift: 0 2px 4px rgb(12 74 110 / 0.06), 0 16px 30px -14px rgb(12 74 110 / 0.45);
 }
 
 @theme inline {
@@ -40,6 +47,12 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
+  --color-sea: var(--sea);
+  --color-sea-soft: var(--sea-soft);
+  --color-sea-ink: var(--sea-ink);
+  --color-air: var(--air);
+  --color-air-soft: var(--air-soft);
+  --color-air-ink: var(--air-ink);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -106,8 +119,28 @@ main > *:nth-child(3) {
 main > *:nth-child(n + 4) {
   animation-delay: 0.12s;
 }
+/* New jobs: a soft pulsing ring so they stand out in a second. */
+@keyframes glow-sea {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(8 145 178 / 0.5), var(--shadow-card); }
+  50% { box-shadow: 0 0 0 7px rgb(8 145 178 / 0), var(--shadow-card); }
+}
+@keyframes glow-air {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(14 165 233 / 0.55), var(--shadow-card); }
+  50% { box-shadow: 0 0 0 7px rgb(14 165 233 / 0), var(--shadow-card); }
+}
+@keyframes ping-dot {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.6); opacity: 0; }
+}
+.glow-sea { animation: glow-sea 2.2s ease-in-out infinite; }
+.glow-air { animation: glow-air 2.2s ease-in-out infinite; }
+.ping-dot { transform-box: fill-box; transform-origin: center; animation: ping-dot 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  main > * {
+  main > *,
+  .glow-sea,
+  .glow-air,
+  .ping-dot {
     animation: none;
   }
 }

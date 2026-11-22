@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkJobDates, jobSchema } from "./job";
+import { checkJobDates, deadlineFor, jobSchema } from "./job";
 
 const base = {
   direction: "import",
@@ -48,5 +48,47 @@ describe("checkJobDates", () => {
   });
   it("accepts a future deadline", () => {
     expect(checkJobDates(base, now)).toEqual({});
+  });
+  it("uses the quote window preset when there is no custom date", () => {
+    const noDate = { ...base, deadlineDate: undefined, deadlineTime: undefined };
+    expect(deadlineFor({ ...noDate, closeIn: "48" }, now).toISOString()).toBe("2026-06-03T00:00:00.000Z");
+    expect(deadlineFor({}, now).toISOString()).toBe("2026-06-03T00:00:00.000Z");
+    expect(deadlineFor({ ...noDate, closeIn: "168" }, now).toISOString()).toBe("2026-06-08T00:00:00.000Z");
+    expect(checkJobDates({ ...noDate, closeIn: "24" }, now)).toEqual({});
+  });
+});
+
+describe("v2 job fields", () => {
+  const delivery = { ...base, services: ["delivery"] };
+
+  it("requires suburb, postcode and unload type when delivery is ticked", () => {
+    const r = jobSchema.safeParse(delivery);
+    expect(r.success).toBe(false);
+    const paths = r.success ? [] : r.error.issues.map((i) => i.path[0]);
+    expect(paths).toEqual(expect.arrayContaining(["deliverySuburb", "deliveryPostcode", "unloadType"]));
+    const ok = jobSchema.safeParse({ ...delivery, deliverySuburb: "Wetherill Park NSW", deliveryPostcode: "2164", unloadType: "side_loader" });
+    expect(ok.success).toBe(true);
+  });
+
+  it("rejects a bad postcode, an unknown unload type and a needed-by date before the ready date", () => {
+    const good = { ...delivery, deliverySuburb: "Wetherill Park NSW", deliveryPostcode: "2164", unloadType: "side_loader" };
+    expect(jobSchema.safeParse({ ...good, deliveryPostcode: "216" }).success).toBe(false);
+    expect(jobSchema.safeParse({ ...good, unloadType: "crane" }).success).toBe(false);
+    expect(jobSchema.safeParse({ ...good, requiredBy: "2026-06-30" }).success).toBe(false);
+    expect(jobSchema.safeParse({ ...good, requiredBy: "2026-07-01" }).success).toBe(true);
+  });
+
+  it("defaults to a one-off job and accepts regular work with a volume", () => {
+    const r = jobSchema.safeParse(base);
+    expect(r.success && r.data.repeatFrequency).toBe("one_off");
+    expect(jobSchema.safeParse({ ...base, repeatFrequency: "monthly", repeatVolume: "About 4 x 40HC" }).success).toBe(true);
+    expect(jobSchema.safeParse({ ...base, repeatFrequency: "daily" }).success).toBe(false);
+  });
+
+  it("needs a date and time for a custom quote window", () => {
+    const noDate = { ...base, deadlineDate: undefined, deadlineTime: undefined };
+    expect(jobSchema.safeParse({ ...noDate, closeIn: "custom" }).success).toBe(false);
+    expect(jobSchema.safeParse({ ...noDate, closeIn: "72" }).success).toBe(true);
+    expect(jobSchema.safeParse({ ...noDate, closeIn: "5" }).success).toBe(false);
   });
 });

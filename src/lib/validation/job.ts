@@ -131,7 +131,7 @@ export function checkJobDates(
   return errors;
 }
 
-/** Fields a poster may change after posting (cargo and ready date lock once quotes exist). */
+/** Fields a requester may change after posting (cargo and ready date lock once quotes exist). */
 export const jobEditSchema = z.object({
   cargoDescription: z
     .string()

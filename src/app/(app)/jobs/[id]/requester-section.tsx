@@ -16,6 +16,7 @@ const ERRORS: Record<string, string> = {
   unverified: "Your company needs to be verified before it can award jobs.",
   suspended: "Your company is suspended and cannot award jobs.",
   failed: "We could not award that quote. It may have been changed. Refresh and try again.",
+  address: "Enter the delivery street address (3 to 200 characters) to award this job.",
 };
 
 function QuoteCard({
@@ -58,14 +59,19 @@ function QuoteCard({
         </div>
       </details>
       {canAward && quote.status === "sent" ? (
-        <AwardButton action={award} companyName={quote.company?.name ?? "this company"} />
+        <AwardButton
+          action={award}
+          companyName={quote.company?.name ?? "this company"}
+          needsAddress={job.services.includes("delivery")}
+          suburb={job.delivery_suburb ? `${job.delivery_suburb} ${job.delivery_postcode ?? ""}`.trim() : undefined}
+        />
       ) : null}
     </Card>
   );
 }
 
-/** The poster's view of a job: every quote as a stacked card, with award when allowed. */
-export async function PosterSection({
+/** The requester's view of a job: every quote as a stacked card, with award when allowed. */
+export async function RequesterSection({
   job,
   company,
   awardError,

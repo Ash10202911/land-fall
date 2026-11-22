@@ -10,7 +10,7 @@ import { checkDeadlineExtension, deadlineToDate, jobEditSchema } from "@/lib/val
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Cancels an open job. The database decides who may (only the poster's company, only while open). */
+/** Cancels an open job. The database decides who may (only the requester's company, only while open). */
 export async function cancelJob(jobId: string): Promise<void> {
   await requireMember();
   if (!UUID.test(jobId)) redirect("/jobs");

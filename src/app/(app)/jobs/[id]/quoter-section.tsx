@@ -13,7 +13,7 @@ function addDays(days: number) {
   return d.toISOString().slice(0, 10);
 }
 
-/** What a non-poster company sees on a job: send, edit or withdraw their own sealed quote. */
+/** What a quoting company sees on a job: send, edit or withdraw their own sealed quote. */
 export async function QuoterSection({
   job,
   me,
@@ -73,7 +73,7 @@ export async function QuoterSection({
       {!mine ? (
         <>
           <p className="text-sm text-muted-foreground">
-            Only {job.company?.name ?? "the poster"} can see your quote. You can edit or withdraw it until the
+            Only {job.company?.name ?? "the requester"} can see your quote. You can edit or withdraw it until the
             deadline.
           </p>
           {me.company.trust_level !== "verified" ? (

@@ -1,4 +1,5 @@
 import { BottomNav, TopNav } from "@/components/nav";
+import { LandDefs } from "@/components/job-card";
 import { requireMember } from "@/lib/auth";
 import { getViewMode } from "@/lib/view-mode";
 
@@ -12,6 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {children}
       </main>
       <BottomNav mode={mode} />
+      <LandDefs />
     </div>
   );
 }

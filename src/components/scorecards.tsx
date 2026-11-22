@@ -103,7 +103,7 @@ export function ActionList({ items }: { items: ActionItem[] }) {
 export function JobScorecardView({ s }: { s: JobScorecard }) {
   if (s.posted === 0) return null;
   return (
-    <Section id="posting-heading" title="Your jobs" note={`Last ${s.days} days.`}>
+    <Section id="posting-heading" title="How your requests are doing" note={`Last ${s.days} days.`}>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="job-scorecard">
         <Stat label="Jobs posted" value={String(s.posted)} hint={`${s.open} open, ${s.awarded} awarded, ${s.cancelled} cancelled`} />
         <Stat
@@ -135,7 +135,7 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
   const win = s.winRate ?? 0;
   const arc = Math.PI * 62;
   return (
-    <Section id="quoting-heading" title="Your quotes" note={`Last ${s.days} days.`}>
+    <Section id="quoting-heading" title="How your quotes are doing" note={`Last ${s.days} days.`}>
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <Card className="flex items-center gap-4 p-4 sm:p-4" data-testid="quote-scorecard">
           <div

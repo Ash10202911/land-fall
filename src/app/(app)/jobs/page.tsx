@@ -73,7 +73,7 @@ async function RequesterView({ company, now }: { company: Company; now: Date }) 
       <JobScorecardView s={buildJobScorecard(dash.myJobs, now)} />
       <section aria-labelledby="my-jobs-heading" className="space-y-3">
         <h2 id="my-jobs-heading" className="text-lg font-semibold tracking-tight">
-          Your jobs
+          Your requests
         </h2>
         {mine.length === 0 ? (
           <EmptyState title="You have not requested a quote yet" body="Use Request quote to ask forwarders for sealed quotes." />

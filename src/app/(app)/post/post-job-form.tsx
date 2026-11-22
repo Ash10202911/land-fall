@@ -171,7 +171,7 @@ export function PostJobForm({
   return (
     <form
       noValidate
-      className="space-y-3 pb-28"
+      className="space-y-3"
       onSubmit={(ev) => {
         ev.preventDefault();
         const data = new FormData(ev.currentTarget);
@@ -438,7 +438,7 @@ export function PostJobForm({
         </p>
       ) : null}
 
-      <div className="fixed inset-x-3 bottom-[5.5rem] z-10 mx-auto flex max-w-3xl items-center gap-3 rounded-[22px] bg-primary p-3 pl-4 text-primary-foreground shadow-lift md:sticky md:bottom-4">
+      <div className="sticky bottom-[5.5rem] z-10 flex items-center gap-3 rounded-[22px] bg-primary p-3 pl-4 text-primary-foreground shadow-lift md:bottom-4">
         <span className="min-w-0 flex-1">
           <span className="block truncate font-bold">
             {scope.summary} · {mode === "FCL" ? `${qty} × ${ctype}` : mode === "Air" ? "Air" : "Sea LCL"}

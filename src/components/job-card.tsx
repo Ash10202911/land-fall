@@ -83,17 +83,50 @@ function CountdownRing({ job, now }: { job: JobRow; now: Date }) {
   );
 }
 
-function PortLabel({ name, country, px, py }: { name: string; country: string; px: number; py: number }) {
+/**
+ * A port name pill placed on the far side of its port from the other port, so it never covers the
+ * route line, and clamped inside the strip.
+ */
+function PortLabel({
+  name,
+  country,
+  px,
+  py,
+  otherPy,
+}: {
+  name: string;
+  country: string;
+  px: number;
+  py: number;
+  otherPy: number;
+}) {
   const left = Math.min(78, Math.max(22, px));
-  const below = py < 52;
+  const below = Math.abs(py - otherPy) < 15 ? py < 52 : py > otherPy;
   return (
     <span
       className="absolute inline-flex h-7 -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-card pl-1.5 pr-2.5 text-xs font-bold shadow-card"
-      style={{ left: `${left}%`, top: below ? `calc(${py}% + 10px)` : `calc(${py}% - 38px)` }}
+      style={{
+        left: `${left}%`,
+        top: below ? `min(calc(100% - 32px), calc(${py}% + 10px))` : `max(4px, calc(${py}% - 38px))`,
+      }}
     >
       <span aria-hidden>{flagFor(country)}</span>
       {shortName(name)}
     </span>
+  );
+}
+
+/**
+ * The world outline, defined once per page. Every route map references it with <use>, so a board of
+ * many cards does not repeat the outline in each one.
+ */
+export function LandDefs() {
+  return (
+    <svg width="0" height="0" aria-hidden className="absolute" focusable="false">
+      <defs>
+        <path id="sb-land" d={LAND_PATH} strokeWidth="0.6" vectorEffect="non-scaling-stroke" />
+      </defs>
+    </svg>
   );
 }
 
@@ -111,7 +144,7 @@ function RouteMap({ job, air }: { job: JobRow; air: boolean }) {
           role="img"
           aria-label={`Route map: ${shortName(job.origin.name)} to ${shortName(job.destination.name)}`}
         >
-          <path d={LAND_PATH} fill={air ? "#d7e9f4" : "#c9e2ea"} stroke={air ? "#b8d7ea" : "#a9ceda"} strokeWidth="0.6" vectorEffect="non-scaling-stroke" />
+          <use href="#sb-land" fill={air ? "#d7e9f4" : "#c9e2ea"} stroke={air ? "#b8d7ea" : "#a9ceda"} />
           <path d={g.arc} fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
           <path
             d={g.arc}
@@ -129,8 +162,14 @@ function RouteMap({ job, air }: { job: JobRow; air: boolean }) {
       ) : null}
       {g ? (
         <>
-          <PortLabel name={job.origin.name} country={job.origin.country} px={g.origin.px} py={g.origin.py} />
-          <PortLabel name={job.destination.name} country={job.destination.country} px={g.destination.px} py={g.destination.py} />
+          <PortLabel name={job.origin.name} country={job.origin.country} px={g.origin.px} py={g.origin.py} otherPy={g.destination.py} />
+          <PortLabel
+            name={job.destination.name}
+            country={job.destination.country}
+            px={g.destination.px}
+            py={g.destination.py}
+            otherPy={g.origin.py}
+          />
         </>
       ) : (
         <p className="absolute inset-x-4 top-1/2 -translate-y-1/2 truncate text-lg font-semibold">

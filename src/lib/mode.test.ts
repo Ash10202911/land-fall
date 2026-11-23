@@ -22,7 +22,7 @@ describe("view mode", () => {
     expect(resolveMode(undefined, "forwarder")).toBe("quoter");
   });
 
-  it("gives each mode its own menu", () => {
+  it("gives each mode its own menu, with My lanes on the Quoter side", () => {
     expect(navItemsFor("requester").map((i) => [i.label, i.href])).toEqual([
       ["My requests", "/jobs"],
       ["Request quote", "/post"],
@@ -31,6 +31,7 @@ describe("view mode", () => {
     expect(navItemsFor("quoter").map((i) => [i.label, i.href])).toEqual([
       ["Job board", "/jobs"],
       ["My quotes", "/quotes"],
+      ["My lanes", "/lanes"],
       ["Profile", "/profile"],
     ]);
   });

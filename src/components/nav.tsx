@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, FilePlus2, FileText, Inbox, User, type LucideIcon } from "lucide-react";
+import { Bell, Briefcase, FilePlus2, FileText, Inbox, User, type LucideIcon } from "lucide-react";
 import { ModeSwitch } from "@/components/mode-switch";
 import { navItemsFor, type NavIcon, type ViewMode } from "@/lib/mode";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   request: FilePlus2,
   board: Briefcase,
   quotes: FileText,
+  lanes: Bell,
   profile: User,
 };
 
@@ -43,7 +44,7 @@ export function BottomNav({ mode }: { mode: ViewMode }) {
       className="fixed inset-x-3 bottom-3 z-20 rounded-2xl border border-white/10 bg-primary/95 shadow-[0_12px_32px_-8px_rgb(12_74_110/0.55)] backdrop-blur md:hidden"
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="mx-auto grid max-w-xl grid-cols-3 gap-1 p-1.5">
+      <ul className="mx-auto grid max-w-xl gap-1 p-1.5" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map(({ href, label, icon }) => {
           const active = isActive(pathname, href);
           const Icon = ICONS[icon];

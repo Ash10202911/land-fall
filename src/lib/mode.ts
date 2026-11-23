@@ -30,7 +30,7 @@ export function resolveMode(cookieValue: unknown, role: "agent" | "forwarder"): 
   return parseMode(cookieValue) ?? defaultModeFor(role);
 }
 
-export type NavIcon = "requests" | "request" | "board" | "quotes" | "profile";
+export type NavIcon = "requests" | "request" | "board" | "quotes" | "lanes" | "profile";
 export type NavItem = { href: string; label: string; icon: NavIcon };
 
 export function navItemsFor(mode: ViewMode): NavItem[] {
@@ -43,6 +43,7 @@ export function navItemsFor(mode: ViewMode): NavItem[] {
     : [
         { href: "/jobs", label: "Job board", icon: "board" },
         { href: "/quotes", label: "My quotes", icon: "quotes" },
+        { href: "/lanes", label: "My lanes", icon: "lanes" },
         { href: "/profile", label: "Profile", icon: "profile" },
       ];
 }

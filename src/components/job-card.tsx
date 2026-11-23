@@ -10,6 +10,7 @@ import { cargoSummary, portLabel, type JobRow } from "@/lib/jobs";
 import { REPEAT_LABELS, UNLOAD_LABELS, scopeFor } from "@/lib/scope";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/i18n-provider";
+import { msg } from "@/lib/i18n";
 
 export type Band = "none" | "few" | "busy";
 
@@ -59,12 +60,12 @@ function CountdownRing({ job, now }: { job: JobRow; now: Date }) {
   const circ = 2 * Math.PI * 21;
   const frac = Math.max(0.04, Math.min(1, left / total));
   const urgent = left < 24;
-  const text = left >= 48 ? `${Math.floor(left / 24)} days` : `${Math.max(1, Math.floor(left))} hours`;
+  const text = left >= 48 ? t("{n} days", { n: Math.floor(left / 24) }) : t("{n} hours", { n: Math.max(1, Math.floor(left)) });
   return (
     <div
       className="absolute right-2 top-2 grid h-14 w-14 place-items-center rounded-full bg-card shadow-card"
       role="img"
-      aria-label={`Quotes close in ${text}`}
+      aria-label={t("Quotes close in {time}", { time: text })}
     >
       <svg width="56" height="56" viewBox="0 0 54 54" className="absolute inset-0" aria-hidden>
         <circle cx="27" cy="27" r="21" fill="none" stroke="var(--muted)" strokeWidth="5" />
@@ -137,6 +138,7 @@ export function LandDefs() {
 
 /** Route map strip: land, a curved route, both ports with flags. */
 function RouteMap({ job, air }: { job: JobRow; air: boolean }) {
+  const t = useT();
   const g = routeGeometry(job.origin.code, job.destination.code, 3);
   const color = air ? "var(--air)" : "var(--sea)";
   return (
@@ -147,7 +149,7 @@ function RouteMap({ job, air }: { job: JobRow; air: boolean }) {
           preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full"
           role="img"
-          aria-label={`Route map: ${shortName(job.origin.name)} to ${shortName(job.destination.name)}`}
+          aria-label={t("Route map: {origin} to {destination}", { origin: shortName(job.origin.name), destination: shortName(job.destination.name) })}
         >
           <use href="#sb-land" fill={air ? "#d7e9f4" : "#c9e2ea"} stroke={air ? "#b8d7ea" : "#a9ceda"} />
           <path d={g.arc} fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
@@ -216,28 +218,29 @@ function Containers({ job }: { job: JobRow }) {
 }
 
 const BAND_TEXT: Record<Band, string> = {
-  none: "No quotes yet. Be first",
-  few: "A few quotes in",
-  busy: "Busy: many quotes",
+  none: msg("No quotes yet. Be first"),
+  few: msg("A few quotes in"),
+  busy: msg("Busy: many quotes"),
 };
 
 function CompetitionMeter({ band, air }: { band: Band; air: boolean }) {
+  const t = useT();
   const lit = band === "none" ? 1 : band === "few" ? 2 : 3;
   return (
-    <span className="flex flex-col gap-1.5" role="img" aria-label={`Competition: ${BAND_TEXT[band]}`}>
+    <span className="flex flex-col gap-1.5" role="img" aria-label={t("Competition: {level}", { level: t(BAND_TEXT[band]) })}>
       <span className="flex gap-1" aria-hidden>
         {[1, 2, 3].map((n) => (
           <span key={n} className={cn("block h-2 w-6 rounded-full", n <= lit ? (air ? "bg-air" : "bg-sea") : "bg-muted")} />
         ))}
       </span>
-      <span className="text-xs font-semibold text-muted-foreground">{BAND_TEXT[band]}</span>
+      <span className="text-xs font-semibold text-muted-foreground">{t(BAND_TEXT[band])}</span>
     </span>
   );
 }
 
 /**
- * The redesigned job card. On the board it shows the competition band and "Send quote"; on the
- * requester's own list it shows the quote count and "Compare quotes".
+ * The redesigned job card. On the board it shows the competition band and t("Send quote"); on the
+ * requester's own list it shows the quote count and t("Compare quotes").
  */
 export function JobCard({
   job,
@@ -293,9 +296,9 @@ export function JobCard({
       <div className="flex flex-1 flex-col gap-3.5 p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-xl font-bold leading-tight tracking-tight">{scope.summary}</p>
+            <p className="text-xl font-bold leading-tight tracking-tight">{t(scope.summary)}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {job.incoterm} · {air ? "Air freight" : job.mode === "FCL" ? "Sea · full container" : "Sea · shared container"}
+              {job.incoterm} · {air ? t("Air freight") : job.mode === "FCL" ? t("Sea · full container") : t("Sea · shared container")}
             </p>
           </div>
           <span
@@ -305,7 +308,7 @@ export function JobCard({
             )}
           >
             <Repeat className="h-3.5 w-3.5" aria-hidden />
-            {regular ? `${REPEAT_LABELS[job.repeat_frequency]}${job.repeat_volume ? ` · ${job.repeat_volume}` : ""}` : "One-off"}
+            {regular ? `${t(REPEAT_LABELS[job.repeat_frequency])}${job.repeat_volume ? ` · ${job.repeat_volume}` : ""}` : t("One-off")}
           </span>
         </div>
 
@@ -322,7 +325,7 @@ export function JobCard({
             </div>
             {job.unload_type ? (
               <span className="shrink-0 rounded-lg border border-border bg-card px-2 py-1 text-xs font-bold">
-                {UNLOAD_LABELS[job.unload_type]}
+                {t(UNLOAD_LABELS[job.unload_type])}
               </span>
             ) : null}
           </div>
@@ -343,7 +346,7 @@ export function JobCard({
           </div>
           <div className="rounded-xl border border-border bg-background/60 px-3 py-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Needed by")}</p>
-            <p className="mt-1 font-bold">{job.required_by ? formatDate(job.required_by) : "Flexible"}</p>
+            <p className="mt-1 font-bold">{job.required_by ? formatDate(job.required_by) : t("Flexible")}</p>
           </div>
         </div>
 
@@ -353,7 +356,7 @@ export function JobCard({
           {mine ? (
             <span className="flex items-baseline gap-1.5">
               <span className="text-2xl font-extrabold">{quoteCount}</span>
-              <span className="text-sm text-muted-foreground">{quoteCount === 1 ? "quote received" : "quotes received"}</span>
+              <span className="text-sm text-muted-foreground">{t.plural(quoteCount, "quote received", "quotes received")}</span>
             </span>
           ) : band ? (
             <CompetitionMeter band={band} air={air} />
@@ -362,7 +365,7 @@ export function JobCard({
           )}
           {!closed ? (
             <span className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground">
-              {mine ? "Compare quotes" : "Send quote"}
+              {mine ? t("Compare quotes") : t("Send quote")}
               <ArrowRight className="h-4 w-4 text-cyan-200" aria-hidden />
             </span>
           ) : null}
@@ -373,7 +376,7 @@ export function JobCard({
             {job.company?.trust_level === "verified" ? (
               <BadgeCheck className="h-3.5 w-3.5 text-success" aria-label={t("Verified")} />
             ) : null}
-            <span className="truncate">{job.company?.name ?? "Unknown company"}</span>
+            <span className="truncate">{job.company?.name ?? t("Unknown company")}</span>
           </p>
         ) : null}
       </div>

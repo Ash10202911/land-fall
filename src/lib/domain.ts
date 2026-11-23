@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n";
 /** Shared constants and formatters. Money is integer minor units (cents) with a currency code. */
 
 export const DIRECTIONS = ["import", "export"] as const;
@@ -8,21 +9,22 @@ export const SERVICES = ["destination_charges", "customs_clearance", "delivery"]
 export const CURRENCIES = ["AUD", "NZD", "USD", "EUR", "GBP", "CNY", "SGD", "HKD", "JPY", "INR"] as const;
 
 export const SERVICE_LABELS: Record<(typeof SERVICES)[number], string> = {
-  destination_charges: "Destination charges",
-  customs_clearance: "Customs clearance",
-  delivery: "Delivery",
+  destination_charges: msg("Destination charges"),
+  customs_clearance: msg("Customs clearance"),
+  delivery: msg("Delivery"),
 };
 
 export const CONTAINER_LABELS: Record<(typeof CONTAINER_TYPES)[number], string> = {
-  "20GP": "20ft general purpose",
-  "40GP": "40ft general purpose",
-  "40HC": "40ft high cube",
-  "20RF": "20ft reefer",
-  "40RF": "40ft reefer",
+  "20GP": msg("20ft general purpose"),
+  "40GP": msg("40ft general purpose"),
+  "40HC": msg("40ft high cube"),
+  "20RF": msg("20ft reefer"),
+  "40RF": msg("40ft reefer"),
 };
 
-export const BANK_WARNING =
-  "Never change bank details based on a message. Always confirm by phone using a number you already trust.";
+export const BANK_WARNING = msg(
+  "Never change bank details based on a message. Always confirm by phone using a number you already trust.",
+);
 
 const pad = (n: number) => String(n).padStart(2, "0");
 

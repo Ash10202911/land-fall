@@ -28,14 +28,14 @@ export default async function ProfilePage() {
           {company.status === "suspended" ? <Badge tone="danger">{t("Suspended")}</Badge> : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          {company.country} · {company.role === "agent" ? "Overseas agent" : "ANZ forwarder"}
+          {company.country} · {company.role === "agent" ? t("Overseas agent") : t("ANZ forwarder")}
         </p>
         {company.trust_level !== "verified" ? (
           <p className="text-sm">
             {t("Get verified to award jobs. An admin reviews companies by hand; contact the Southbound team to start.")}
           </p>
         ) : null}
-        <p className="text-sm text-muted-foreground">Signed in as {me.email}</p>
+        <p className="text-sm text-muted-foreground">{t("Signed in as {email}", { email: me.email })}</p>
       </Card>
 
       <Card>

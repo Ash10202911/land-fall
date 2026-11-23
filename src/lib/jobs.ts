@@ -31,6 +31,7 @@ export type JobRow = {
   repeat_frequency: (typeof REPEAT_FREQUENCIES)[number];
   repeat_volume: string | null;
   required_by: string | null;
+  extensions: number;
   origin: PortRef;
   destination: PortRef;
   company: { id: string; name: string; country: string; trust_level: "basic" | "verified" } | null;
@@ -41,7 +42,7 @@ export const JOB_SELECT = `
   id, company_id, created_by, direction, incoterm, mode, container_type, container_qty,
   weight_kg, volume_cbm, cargo_description, ready_date, services, flag_dg, flag_reefer,
   flag_bmsb, deadline_at, notes, status, awarded_quote_id, created_at,
-  delivery_suburb, delivery_postcode, unload_type, repeat_frequency, repeat_volume, required_by,
+  delivery_suburb, delivery_postcode, unload_type, repeat_frequency, repeat_volume, required_by, extensions,
   origin:ports!origin_port_id(code, name, country),
   destination:ports!destination_port_id(code, name, country),
   company:companies(id, name, country, trust_level)

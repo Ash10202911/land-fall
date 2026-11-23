@@ -90,7 +90,7 @@ export function UploadForm({ ports, defaultCurrency, minDate, defaultValidTo }: 
         </p>
       ) : null}
       <Button type="submit" variant="accent" disabled={pending}>
-        {pending ? "Reading the file…" : "Upload rate card"}
+        {pending ? t("Reading the file…") : t("Upload rate card")}
       </Button>
     </form>
   );

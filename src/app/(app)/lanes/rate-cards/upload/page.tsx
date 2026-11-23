@@ -29,13 +29,13 @@ export default async function UploadRateCardPage() {
 
       <ol className="space-y-2 rounded-2xl border border-border bg-sea-soft p-4 text-sm">
         <li>
-          <strong>1.</strong> Download the template and replace the example rows with your own.
+          <strong>1.</strong> {t("Download the template and replace the example rows with your own.")}
         </li>
         <li>
-          <strong>2.</strong> In Excel choose File, Save As, then <em>{t("CSV")}</em>.
+          <strong>2.</strong> {t("In Excel choose File, Save As, then")} <em>{t("CSV")}</em>.
         </li>
         <li>
-          <strong>3.</strong> Fill in the form below and upload the file. If a row has a mistake, nothing is saved and we tell you which row.
+          <strong>3.</strong> {t("Fill in the form below and upload the file. If a row has a mistake, nothing is saved and we tell you which row.")}
         </li>
         <li className="pt-1">
           <a

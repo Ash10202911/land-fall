@@ -52,6 +52,7 @@ export default async function MyQuotesPage() {
       myQuotes: dash.myQuotes,
       openJobs,
       myCompanyId: me.company.id,
+      tr: t,
       now,
       limit: 50,
     }),
@@ -93,18 +94,18 @@ export default async function MyQuotesPage() {
                                 {flagFor(d.country)}
                               </span>
                               <span>
-                                {shortName(o.name)} to {shortName(d.name)}
+                                {t("{origin} to {destination}", { origin: shortName(o.name), destination: shortName(d.name) })}
                               </span>
                             </>
                           ) : (
-                            "Job"
+                            t("Job")
                           )}
                         </p>
-                        <Badge tone={tone[q.status]}>{QUOTE_STATUS_LABEL[q.status]}</Badge>
+                        <Badge tone={tone[q.status]}>{t(QUOTE_STATUS_LABEL[q.status])}</Badge>
                       </div>
                       <p className="text-lg font-bold">{quoteTotal(q)}</p>
                       <p className="text-xs text-muted-foreground">
-                        {q.job?.mode} · valid until {formatDate(q.valid_until)}
+                        {q.job?.mode} · {t("valid until {date}", { date: formatDate(q.valid_until) })}
                       </p>
                     </Card>
                   </Link>

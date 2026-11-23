@@ -9,6 +9,7 @@ import type { JobRow } from "@/lib/jobs";
 import { QUOTE_SELECT, normaliseQuote } from "@/lib/quotes";
 import { MyQuote } from "./my-quote";
 import { QuoteForm, type LineDraft } from "./quote-form";
+import { parseCategory } from "@/lib/compare";
 import { getT } from "@/lib/i18n/server";
 
 function addDays(days: number) {
@@ -49,8 +50,8 @@ export async function QuoterSection({
       <Card>
         <p className="text-sm text-muted-foreground">
           {job.status === "awarded"
-            ? "This job has been awarded."
-            : "Quotes are closed for this job."}
+            ? t("This job has been awarded.")
+            : t("Quotes are closed for this job.")}
         </p>
       </Card>
     );
@@ -70,6 +71,7 @@ export async function QuoterSection({
     amount: (Number(l.amount_minor) / 100).toFixed(2),
     currency: l.currency,
     gstIncluded: l.gst_included,
+    category: parseCategory(l.category),
   }));
 
   // A new quote opens pre-filled from the company's rate card for this port, when it has one.
@@ -81,9 +83,9 @@ export async function QuoterSection({
     const cards = await loadRateCards(supabase, me.company.id, job.destination.code);
     const card = pickRateCard(cards, job.destination.code, addDays(0));
     if (card) {
-      const built = buildQuoteFromRateCard(card, { ...job, destination_code: job.destination.code });
+      const built = buildQuoteFromRateCard(card, { ...job, destination_code: job.destination.code }, t);
       if (built.lines.length > 0) {
-        initialLines = built.lines.map(({ chargeName, amount, currency, gstIncluded, source }) => ({ chargeName, amount, currency, gstIncluded, source }));
+        initialLines = built.lines.map(({ chargeName, amount, currency, gstIncluded, category, source }) => ({ chargeName, amount, currency, gstIncluded, category, source }));
         if (card.valid_to < validUntil) validUntil = card.valid_to;
         prefill = { cardName: card.name, total: formatMoney(built.totalMinor, card.currency), warnings: built.warnings };
       } else {
@@ -94,13 +96,13 @@ export async function QuoterSection({
 
   return (
     <Card className="space-y-3">
-      <h2 className="font-semibold">{mine ? "Edit your quote" : "Send a sealed quote"}</h2>
+      <h2 className="font-semibold">{mine ? t("Edit your quote") : t("Send a sealed quote")}</h2>
       {prefill ? (
         <div role="status" className="space-y-1.5 rounded-xl bg-sea-soft p-3 text-sm text-sea-ink">
           <p className="flex items-start gap-2 font-semibold">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>
-              Filled in from your rate card &ldquo;{prefill.cardName}&rdquo;: {prefill.total}. Check every line, then send.
+              {t("Filled in from your rate card “{name}”: {total}. Check every line, then send.", { name: prefill.cardName, total: prefill.total })}
             </span>
           </p>
           {prefill.warnings.map((w) => (
@@ -112,7 +114,7 @@ export async function QuoterSection({
       ) : null}
       {cardMissedJob ? (
         <div role="status" className="space-y-1 rounded-xl bg-muted p-3 text-sm">
-          <p className="font-semibold">Your rate card &ldquo;{cardMissedJob.cardName}&rdquo; has nothing that fits this job, so nothing was filled in.</p>
+          <p className="font-semibold">{t("Your rate card “{name}” has nothing that fits this job, so nothing was filled in.", { name: cardMissedJob.cardName })}</p>
           {cardMissedJob.warnings.map((w) => (
             <p key={w} className="text-muted-foreground">
               {w}
@@ -123,8 +125,7 @@ export async function QuoterSection({
       {!mine ? (
         <>
           <p className="text-sm text-muted-foreground">
-            Only {job.company?.name ?? "the requester"} can see your quote. You can edit or withdraw it until the
-            deadline.
+            {t("Only {name} can see your quote. You can edit or withdraw it until the deadline.", { name: job.company?.name ?? t("the requester") })}
           </p>
           {me.company.trust_level !== "verified" ? (
             <p className="text-xs text-muted-foreground">

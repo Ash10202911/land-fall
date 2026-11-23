@@ -46,7 +46,7 @@ export function OnboardingForm() {
         </p>
       ) : null}
       <Button type="submit" size="full" disabled={pending}>
-        {pending ? "Saving…" : "Continue"}
+        {pending ? t("Saving…") : t("Continue")}
       </Button>
     </form>
   );

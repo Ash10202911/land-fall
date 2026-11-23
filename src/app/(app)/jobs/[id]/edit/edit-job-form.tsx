@@ -87,7 +87,7 @@ export function EditJobForm({
         </p>
       ) : null}
       <Button type="submit" variant="accent" size="full" disabled={pending}>
-        {pending ? "Saving…" : "Save changes"}
+        {pending ? t("Saving…") : t("Save changes")}
       </Button>
     </form>
   );

@@ -18,7 +18,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
       <p className="text-sm text-muted-foreground">
         {t("We could not load this page. Your data is safe. Try again, and if it keeps happening, come back in a few minutes.")}
       </p>
-      {error.digest ? <p className="text-xs text-muted-foreground">Reference: {error.digest}</p> : null}
+      {error.digest ? <p className="text-xs text-muted-foreground">{t("Reference: {code}", { code: error.digest })}</p> : null}
       <div className="flex gap-2">
         <button
           type="button"

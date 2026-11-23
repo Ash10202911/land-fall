@@ -11,6 +11,7 @@ import { RequesterSection } from "./requester-section";
 import { ScopeStrip } from "@/components/scope-strip";
 import { REPEAT_LABELS, UNLOAD_LABELS, scopeFor } from "@/lib/scope";
 import { AwardContacts } from "./contacts";
+import { QuestionsSection } from "./questions-section";
 import { CONTAINER_LABELS, SERVICE_LABELS, formatDate, formatDateTime, isJobClosed } from "@/lib/domain";
 import { getT } from "@/lib/i18n/server";
 
@@ -32,11 +33,11 @@ export default async function JobDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ edit?: string; award_error?: string; job_error?: string }>;
+  searchParams: Promise<{ edit?: string; award_error?: string; job_error?: string; extended?: string; complete?: string }>;
 }) {
   const t = await getT();
   const { id } = await params;
-  const { edit, award_error: awardError, job_error: jobError } = await searchParams;
+  const { edit, award_error: awardError, job_error: jobError, extended, complete } = await searchParams;
   if (!UUID.test(id)) notFound();
 
   const me = await requireMember();
@@ -59,7 +60,7 @@ export default async function JobDetailPage({
 
       <div className="space-y-2">
         <h1 className="text-xl font-semibold">
-          {job.origin.name} to {job.destination.name}
+          {t("{origin} to {destination}", { origin: job.origin.name, destination: job.destination.name })}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
           {job.status === "awarded" ? (
@@ -73,8 +74,8 @@ export default async function JobDetailPage({
           )}
           {isRequester ? <Badge tone="verified">{t("Your job")}</Badge> : null}
           <span className="text-sm text-muted-foreground">
-            Posted by {job.company?.name ?? "Unknown"}
-            {job.company?.trust_level === "verified" ? " (Verified)" : ""}
+            {t("Posted by {name}", { name: job.company?.name ?? t("Unknown") })}
+            {job.company?.trust_level === "verified" ? ` ${t("(Verified)")}` : ""}
           </span>
         </div>
         <JobFlags job={job} />
@@ -88,7 +89,15 @@ export default async function JobDetailPage({
 
       {jobError ? (
         <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {t("We could not cancel this job. It may already be awarded or closed.")}
+          {jobError === "extend"
+            ? t("We could not extend this job. It may have received a quote, already been extended twice, or closed.")
+            : t("We could not cancel this job. It may already be awarded or closed.")}
+        </p>
+      ) : null}
+
+      {extended === "24" || extended === "48" ? (
+        <p role="status" className="rounded-xl bg-sea-soft p-3 text-sm text-sea-ink">
+          {t("Deadline extended by {hours} hours. Forwarders watching this lane have been told.", { hours: extended })}
         </p>
       ) : null}
 
@@ -100,38 +109,38 @@ export default async function JobDetailPage({
 
       <Card className="space-y-3">
         <p className="font-bold">
-          Forwarders price: <span className="text-sea-ink">{scope.summary}</span>
+          {t("Forwarders price:")} <span className="text-sea-ink">{t(scope.summary)}</span>
         </p>
         <ScopeStrip legs={scope.legs} air={job.mode === "Air"} />
       </Card>
 
       <Card>
         <dl className="divide-y divide-border">
-          <Row label={t("Direction")}>{job.direction === "import" ? "Import" : "Export"}</Row>
+          <Row label={t("Direction")}>{job.direction === "import" ? t("Import") : t("Export")}</Row>
           <Row label={t("Mode")}>{job.mode}</Row>
           <Row label={t("Origin")}>{portLabel(job.origin)}, {job.origin.country}</Row>
           <Row label={t("Destination")}>{portLabel(job.destination)}, {job.destination.country}</Row>
           <Row label={t("Incoterm")}>{job.incoterm}</Row>
           <Row label={t("Cargo")}>
             {cargoSummary(job)}
-            {job.mode === "FCL" && job.container_type ? ` (${CONTAINER_LABELS[job.container_type]})` : ""}
+            {job.mode === "FCL" && job.container_type ? ` (${t(CONTAINER_LABELS[job.container_type])})` : ""}
           </Row>
           <Row label={t("Cargo ready")}>{formatDate(job.ready_date)}</Row>
-          <Row label={t("Needed by")}>{job.required_by ? formatDate(job.required_by) : "Flexible"}</Row>
+          <Row label={t("Needed by")}>{job.required_by ? formatDate(job.required_by) : t("Flexible")}</Row>
           <Row label={t("Quotes due")}>{formatDateTime(job.deadline_at)}</Row>
           {job.delivery_suburb ? (
             <Row label={t("Deliver to")}>
               {job.delivery_suburb} {job.delivery_postcode}
-              {job.unload_type ? ` · ${UNLOAD_LABELS[job.unload_type]}` : ""}
+              {job.unload_type ? ` · ${t(UNLOAD_LABELS[job.unload_type])}` : ""}
             </Row>
           ) : null}
           <Row label={t("Regular work")}>
             {job.repeat_frequency === "one_off"
-              ? "One-off"
-              : `${REPEAT_LABELS[job.repeat_frequency]}${job.repeat_volume ? ` · ${job.repeat_volume}` : ""}`}
+              ? t("One-off")
+              : `${t(REPEAT_LABELS[job.repeat_frequency])}${job.repeat_volume ? ` · ${job.repeat_volume}` : ""}`}
           </Row>
           <Row label={t("Services")}>
-            {job.services.length > 0 ? job.services.map((s) => SERVICE_LABELS[s]).join(", ") : "None specified"}
+            {job.services.length > 0 ? job.services.map((s) => t(SERVICE_LABELS[s])).join(", ") : t("None specified")}
           </Row>
         </dl>
       </Card>
@@ -150,10 +159,17 @@ export default async function JobDetailPage({
       {job.status === "awarded" ? <AwardContacts jobId={job.id} suburb={job.delivery_suburb ? `${job.delivery_suburb} ${job.delivery_postcode ?? ""}`.trim() : null} /> : null}
 
       {isRequester ? (
-        <RequesterSection job={job} company={me.company} awardError={awardError} />
+        <RequesterSection job={job} company={me.company} awardError={awardError} onlyComplete={complete === "1"} />
       ) : (
         <QuoterSection job={job} me={me} edit={edit === "1"} />
       )}
+
+      <QuestionsSection
+        jobId={job.id}
+        isRequester={isRequester}
+        canAsk={!isRequester && job.status === "open" && !closed && me.company.status === "active"}
+        canAnswer={isRequester && job.status === "open" && !closed && me.company.status === "active"}
+      />
     </div>
   );
 }

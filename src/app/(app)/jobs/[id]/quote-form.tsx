@@ -8,11 +8,12 @@ import { CURRENCIES, formatMoney, parseMoneyToMinor, totalsByCurrency } from "@/
 import type { FormState } from "@/lib/validation/auth";
 import { submitQuote, updateQuote } from "./quote-actions";
 import { useT } from "@/components/i18n-provider";
+import { QUOTE_CATEGORIES, QUOTE_CATEGORY_LABELS, type QuoteCategory } from "@/lib/compare";
 
 /** `source` is set on lines filled in from a rate card; it is for display only and is never saved. */
-export type LineDraft = { chargeName: string; amount: string; currency: string; gstIncluded: boolean; source?: string };
+export type LineDraft = { chargeName: string; amount: string; currency: string; gstIncluded: boolean; category: QuoteCategory; source?: string };
 
-const blankLine = (): LineDraft => ({ chargeName: "", amount: "", currency: "AUD", gstIncluded: true });
+const blankLine = (): LineDraft => ({ chargeName: "", amount: "", currency: "AUD", gstIncluded: true, category: "other" });
 
 export function QuoteForm({
   jobId,
@@ -78,7 +79,7 @@ export function QuoteForm({
                 {line.source}
               </p>
             ) : null}
-            <Field label={`Charge ${i + 1}`} htmlFor={`charge-${i}`} error={e[`lines.${i}.chargeName`]}>
+            <Field label={t("Charge {n}", { n: i + 1 })} htmlFor={`charge-${i}`} error={e[`lines.${i}.chargeName`]}>
               <Input
                 id={`charge-${i}`}
                 value={line.chargeName}
@@ -112,6 +113,19 @@ export function QuoteForm({
                 </Select>
               </Field>
             </div>
+            <Field label={t("Covers")} htmlFor={`category-${i}`}>
+              <Select
+                id={`category-${i}`}
+                value={line.category}
+                onChange={(ev) => update(i, { category: ev.target.value as QuoteCategory })}
+              >
+                {QUOTE_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {t(QUOTE_CATEGORY_LABELS[c])}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <div className="flex items-center justify-between">
               <label className="flex min-h-11 items-center gap-3 text-sm">
                 <input
@@ -127,7 +141,7 @@ export function QuoteForm({
                   type="button"
                   variant="ghost"
                   onClick={() => setLines((prev) => prev.filter((_, idx) => idx !== i))}
-                  aria-label={`Remove charge ${i + 1}`}
+                  aria-label={t("Remove charge {n}", { n: i + 1 })}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden />
                   {t("Remove")}

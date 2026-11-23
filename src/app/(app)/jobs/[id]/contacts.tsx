@@ -31,7 +31,7 @@ export async function AwardContacts({ jobId, suburb }: { jobId: string; suburb?:
         className="flex gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm text-foreground"
       >
         <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden />
-        <p>{BANK_WARNING}</p>
+        <p>{t(BANK_WARNING)}</p>
       </div>
       {address?.street ? (
         <Card className="flex items-start gap-3">

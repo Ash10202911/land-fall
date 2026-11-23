@@ -123,7 +123,7 @@ export default async function LanesPage() {
                                 a.frequency === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
                               )}
                             >
-                              {FREQUENCY_LABELS[f]}
+                              {t(FREQUENCY_LABELS[f])}
                             </button>
                           </form>
                         ))}
@@ -136,13 +136,13 @@ export default async function LanesPage() {
                       )}
                     >
                       <FileText className="h-4 w-4 shrink-0" aria-hidden />
-                      {hasCard ? `Quotes fill in from your ${shortName(d.name)} rate card` : `No rate card for ${shortName(d.name)} yet`}
+                      {hasCard ? t("Quotes fill in from your {port} rate card", { port: shortName(d.name) }) : t("No rate card for {port} yet", { port: shortName(d.name) })}
                     </p>
                     <form action={deleteLaneAlert.bind(null, a.id)} className="mt-auto">
                       <button
                         type="submit"
                         className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-destructive"
-                        aria-label={`Remove the lane ${originLabel} to ${shortName(d.name)}`}
+                        aria-label={t("Remove the lane {origin} to {destination}", { origin: originLabel, destination: shortName(d.name) })}
                       >
                         <Trash2 className="h-4 w-4" aria-hidden />
                         {t("Remove")}
@@ -197,12 +197,12 @@ export default async function LanesPage() {
                       <div className="min-w-0">
                         <p className="truncate font-bold">{c.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {port ? shortName(port.name) : "Port"} · {c.currency} · {c.charges?.[0]?.count ?? 0} lines
+                          {port ? shortName(port.name) : t("Port")} · {c.currency} · {t("{n} lines", { n: c.charges?.[0]?.count ?? 0 })}
                         </p>
                       </div>
                       {expired ? <Badge tone="danger">{t("Expired")}</Badge> : expiring ? <Badge tone="warning">{t("Expires soon")}</Badge> : <Badge tone="success">{t("Active")}</Badge>}
                     </div>
-                    <p className="text-sm text-muted-foreground">Valid to {formatDate(c.valid_to)}</p>
+                    <p className="text-sm text-muted-foreground">{t("Valid to {date}", { date: formatDate(c.valid_to) })}</p>
                     <Link href={`/lanes/rate-cards/${c.id}`} className="mt-auto inline-flex min-h-11 items-center gap-2 text-sm font-bold text-accent">
                       <Pencil className="h-4 w-4" aria-hidden />
                       {t("Edit")}

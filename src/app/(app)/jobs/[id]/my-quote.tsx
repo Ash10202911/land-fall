@@ -8,10 +8,12 @@ import { formatDate, formatMoney, formatTotals } from "@/lib/domain";
 import { QUOTE_STATUS_LABEL, type QuoteRow } from "@/lib/quotes";
 import { withdrawQuote } from "./quote-actions";
 import { useT } from "@/components/i18n-provider";
+import { QUOTE_CATEGORY_LABELS, parseCategory } from "@/lib/compare";
 
 const tone = { sent: "neutral", withdrawn: "warning", won: "success", lost: "danger" } as const;
 
 export function QuoteLines({ quote }: { quote: QuoteRow }) {
+  const t = useT();
   return (
     <ul className="divide-y divide-border text-sm">
       {quote.lines.map((l) => (
@@ -19,7 +21,7 @@ export function QuoteLines({ quote }: { quote: QuoteRow }) {
           <span>
             {l.charge_name}
             <span className="block text-xs text-muted-foreground">
-              {l.gst_included ? "GST included" : "GST not included"}
+              {t(QUOTE_CATEGORY_LABELS[parseCategory(l.category)])} · {l.gst_included ? t("GST included") : t("GST not included")}
             </span>
           </span>
           <span className="font-medium">{formatMoney(Number(l.amount_minor), l.currency)}</span>
@@ -37,12 +39,12 @@ export function MyQuote({ quote, jobId, canChange }: { quote: QuoteRow; jobId: s
     <Card className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-semibold">{t("Your quote")}</h2>
-        <Badge tone={tone[quote.status]}>{QUOTE_STATUS_LABEL[quote.status]}</Badge>
+        <Badge tone={tone[quote.status]}>{t(QUOTE_STATUS_LABEL[quote.status])}</Badge>
       </div>
       <QuoteLines quote={quote} />
       <div className="text-sm">
-        <p className="font-medium">Total {formatTotals(quote.lines)}</p>
-        <p className="text-muted-foreground">Valid until {formatDate(quote.valid_until)}</p>
+        <p className="font-medium">{t("Total {amount}", { amount: formatTotals(quote.lines) })}</p>
+        <p className="text-muted-foreground">{t("Valid until {date}", { date: formatDate(quote.valid_until) })}</p>
         {quote.notes ? <p className="mt-1 whitespace-pre-wrap">{quote.notes}</p> : null}
       </div>
       <p className="text-xs text-muted-foreground">

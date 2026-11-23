@@ -1,10 +1,12 @@
 import { formatDateTime, type SERVICES } from "@/lib/domain";
 import type { EmailMessage } from "@/lib/email";
 import { REPEAT_LABELS, UNLOAD_LABELS, scopeFor } from "@/lib/scope";
+import { msg, tEn, type Locale, type Translator } from "@/lib/i18n";
+import { translatorFor } from "@/lib/i18n/translator";
 
 export const ALERT_FREQUENCIES = ["instant", "daily", "off"] as const;
 export type AlertFrequency = (typeof ALERT_FREQUENCIES)[number];
-export const FREQUENCY_LABELS: Record<AlertFrequency, string> = { instant: "Instantly", daily: "Daily 7am", off: "Off" };
+export const FREQUENCY_LABELS: Record<AlertFrequency, string> = { instant: msg("Instantly"), daily: msg("Daily 7am"), off: msg("Off") };
 
 export type AlertRow = {
   id: string;
@@ -61,12 +63,19 @@ export type JobBrief = {
   deadlineAt: string;
 };
 
-export function briefLines(job: JobBrief): string[] {
+export function briefLines(job: JobBrief, t: Translator = tEn): string[] {
+  const modeText = job.mode === "Air" ? t("Air") : job.mode === "FCL" ? t("Sea, full container") : t("Sea, shared container");
+  const [regularLabel, ...regularRest] = (job.regular ?? "").split(", ");
+  const regular = job.regular ? [t(regularLabel), ...regularRest].join(", ") : "";
   return [
-    `${job.scope} · ${job.incoterm} · ${job.mode === "Air" ? "Air" : job.mode === "FCL" ? "Sea, full container" : "Sea, shared container"}`,
-    job.size + (job.regular ? ` · ${job.regular}` : ""),
-    job.deliverTo ? `Deliver to ${job.deliverTo}${job.unload ? ` (${job.unload})` : ""}` : "",
-    `Quotes close ${formatDateTime(job.deadlineAt)}`,
+    `${t(job.scope)} · ${job.incoterm} · ${modeText}`,
+    job.size + (regular ? ` · ${regular}` : ""),
+    job.deliverTo
+      ? job.unload
+        ? t("Deliver to {place} ({unload})", { place: job.deliverTo, unload: t(job.unload) })
+        : t("Deliver to {place}", { place: job.deliverTo })
+      : "",
+    t("Quotes close {when}", { when: formatDateTime(job.deadlineAt) }),
   ].filter(Boolean);
 }
 
@@ -80,30 +89,52 @@ export function planInstantAlert(args: {
   to: string;
   job: JobBrief;
   rateCard?: { name: string; total: string } | null;
+  /** The requester extended the deadline on a job with no quotes yet. */
+  extended?: boolean;
+  /** The recipient's language. English when not given. */
+  language?: Locale;
 }): EmailMessage {
-  const { baseUrl, to, job, rateCard } = args;
+  const { baseUrl, to, job, rateCard, extended } = args;
+  const t = translatorFor(args.language ?? "en");
   const body = [
-    `A new job was posted on a lane you watch: ${job.route}.`,
+    extended
+      ? t("The quote deadline was extended on a job on a lane you watch: {route}. No quotes have been sent yet.", { route: job.route })
+      : t("A new job was posted on a lane you watch: {route}.", { route: job.route }),
     "",
-    ...briefLines(job),
-    ...(rateCard ? ["", `Your rate card "${rateCard.name}" gives ${rateCard.total} for this job. Open it to review and send.`] : []),
+    ...briefLines(job, t),
+    ...(rateCard
+      ? ["", t("Your rate card \"{name}\" gives {total} for this job. Open it to review and send.", { name: rateCard.name, total: rateCard.total })]
+      : []),
     "",
-    `${rateCard ? "Review and send your quote" : "View the job"}: ${jobLink(baseUrl, job.id)}`,
+    `${rateCard ? t("Review and send your quote") : t("View the job")}: ${jobLink(baseUrl, job.id)}`,
     "",
-    "Quotes are sealed: only the requester sees your price.",
+    t("Quotes are sealed: only the requester sees your price."),
   ];
-  return { to, subject: `New job on your lane: ${job.route}`, text: body.join("\n") };
+  return {
+    to,
+    locale: t.locale,
+    subject: extended ? t("Deadline extended: {route}", { route: job.route }) : t("New job on your lane: {route}", { route: job.route }),
+    text: body.join("\n"),
+  };
 }
 
 /** One email listing every new job since the last digest. */
-export function planDigest(args: { baseUrl: string; to: string; jobs: JobBrief[] }): EmailMessage {
+export function planDigest(args: { baseUrl: string; to: string; jobs: JobBrief[]; language?: Locale }): EmailMessage {
   const { baseUrl, to, jobs } = args;
+  const t = translatorFor(args.language ?? "en");
   const n = jobs.length;
-  const sections = jobs.map((j) => [`${j.route}`, ...briefLines(j).map((l) => `  ${l}`), `  ${jobLink(baseUrl, j.id)}`].join("\n"));
+  const sections = jobs.map((j) => [`${j.route}`, ...briefLines(j, t).map((l) => `  ${l}`), `  ${jobLink(baseUrl, j.id)}`].join("\n"));
   return {
     to,
-    subject: `${n} new ${n === 1 ? "job" : "jobs"} on your lanes`,
-    text: [`Here ${n === 1 ? "is the job" : "are the jobs"} posted on your lanes since your last summary.`, "", sections.join("\n\n"), "", "Quotes are sealed: only the requester sees your price."].join("\n"),
+    locale: t.locale,
+    subject: t.plural(n, "{n} new job on your lanes", "{n} new jobs on your lanes"),
+    text: [
+      t.plural(n, "Here is the job posted on your lanes since your last summary.", "Here are the jobs posted on your lanes since your last summary."),
+      "",
+      sections.join("\n\n"),
+      "",
+      t("Quotes are sealed: only the requester sees your price."),
+    ].join("\n"),
   };
 }
 
@@ -150,9 +181,9 @@ export function sydneyHour(date: Date): number {
   return Number(h);
 }
 
-export type AlertWithRecipient = AlertRow & { recipient: string };
+export type AlertWithRecipient = AlertRow & { recipient: string; language?: Locale };
 export type RunJob = MatchJob & JobForBrief;
-export type RunEmail = { to: string; companyId: string; jobs: RunJob[]; pairs: { alertId: string; jobId: string }[] };
+export type RunEmail = { to: string; companyId: string; language?: Locale; jobs: RunJob[]; pairs: { alertId: string; jobId: string }[] };
 
 /**
  * Decides who is emailed about which jobs. For each alert of the given frequency, every matching job it
@@ -166,19 +197,20 @@ export function planRun(args: {
   delivered: ReadonlySet<string>;
   frequency: "instant" | "daily";
 }): RunEmail[] {
-  const pairs: { alertId: string; recipient: string; jobId: string; companyId: string }[] = [];
+  const pairs: { alertId: string; recipient: string; jobId: string; companyId: string; language?: Locale }[] = [];
   for (const alert of args.alerts) {
     if (alert.frequency !== args.frequency || !alert.recipient) continue;
     for (const job of args.jobs) {
       if (args.delivered.has(`${alert.id}:${job.id}`)) continue;
       if (!laneMatches(alert, job)) continue;
-      pairs.push({ alertId: alert.id, recipient: alert.recipient, jobId: job.id, companyId: alert.company_id });
+      pairs.push({ alertId: alert.id, recipient: alert.recipient, jobId: job.id, companyId: alert.company_id, language: alert.language });
     }
   }
   const byId = new Map(args.jobs.map((j) => [j.id, j]));
   return [...groupForDigest(pairs)].map(([to, g]) => ({
     to,
     companyId: g.pairs[0].companyId,
+    language: g.pairs[0].language,
     jobs: g.jobIds.map((id) => byId.get(id)!),
     pairs: g.pairs.map((p) => ({ alertId: p.alertId, jobId: p.jobId })),
   }));

@@ -45,7 +45,7 @@ export function SignInForm() {
       ) : null}
       <Button type="submit" size="full" disabled={pending}>
         <Mail className="h-4 w-4" aria-hidden />
-        {pending ? "Sending…" : "Email me a sign-in link"}
+        {pending ? t("Sending…") : t("Email me a sign-in link")}
       </Button>
     </form>
   );

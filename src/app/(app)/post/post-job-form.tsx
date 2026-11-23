@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { postJob, type JobFormState } from "./actions";
 import { useT } from "@/components/i18n-provider";
+import { msg } from "@/lib/i18n";
 
 export type JobDefaults = {
   direction: "import" | "export";
@@ -47,11 +48,11 @@ type Services = { destination_charges: boolean; customs_clearance: boolean; deli
 
 const QUICK_TERMS = ["EXW", "FOB", "CIF", "DAP"] as const;
 const CLOSE_OPTIONS = [
-  ["24", "24 h"],
-  ["48", "48 h"],
-  ["72", "72 h"],
-  ["168", "7 days"],
-  ["custom", "Pick a date"],
+  ["24", msg("24 h")],
+  ["48", msg("48 h")],
+  ["72", msg("72 h")],
+  ["168", msg("7 days")],
+  ["custom", msg("Pick a date")],
 ] as const;
 
 /** Sensible destination services for each Incoterm; the requester can change them on the strip. */
@@ -159,7 +160,7 @@ export function PostJobForm({
   const picked = (Object.keys(services) as (keyof Services)[]).filter((k) => services[k]);
   const scope = scopeFor(incoterm, picked);
   const air = mode === "Air";
-  const closeLabel = CLOSE_OPTIONS.find(([v]) => v === closeIn)?.[1] ?? "48 h";
+  const closeLabel = t(CLOSE_OPTIONS.find(([v]) => v === closeIn)?.[1] ?? "48 h");
 
   const chooseTerm = (term: string) => {
     setIncoterm(term);
@@ -302,7 +303,7 @@ export function PostJobForm({
           </label>
         </div>
         <p className="text-sm font-bold">
-          Forwarders price: <span className="text-sea-ink">{scope.summary}</span>
+          {t("Forwarders price:")} <span className="text-sea-ink">{t(scope.summary)}</span>
         </p>
         <ScopeStrip legs={scope.legs} air={air} onToggle={toggleLeg} />
         <p className="text-xs text-muted-foreground">{t("Tap Dest., Customs or Delivery to add or remove it. Pickup and freight follow the Incoterm.")}</p>
@@ -325,7 +326,7 @@ export function PostJobForm({
             <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="unload-label">
               {UNLOAD_TYPES.map((u) => (
                 <Chip key={u} on={unload === u} onClick={() => setUnload(u)}>
-                  {UNLOAD_LABELS[u]}
+                  {t(UNLOAD_LABELS[u])}
                 </Chip>
               ))}
             </div>
@@ -364,11 +365,14 @@ export function PostJobForm({
           <span className="min-w-0 flex-1">
             <span className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("Defaults")}</span>
             <span className="mt-1 block text-sm font-semibold">
-              Closes in {closeLabel} · {REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]} ·{" "}
-              {direction === "import" ? "Import to ANZ" : "Export from ANZ"}
+              {t("Closes in {time} · {repeat} · {direction}", {
+                time: closeLabel,
+                repeat: t(REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]),
+                direction: direction === "import" ? t("Import to ANZ") : t("Export from ANZ"),
+              })}
             </span>
           </span>
-          <span className="text-sm font-bold text-accent">{showMore ? "Done" : "Change"}</span>
+          <span className="text-sm font-bold text-accent">{showMore ? t("Done") : t("Change")}</span>
         </button>
         <div id="defaults-panel" hidden={!showMore} className="mt-3 space-y-4">
           <div>
@@ -378,7 +382,7 @@ export function PostJobForm({
             <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="close-label">
               {CLOSE_OPTIONS.map(([v, label]) => (
                 <Chip key={v} on={closeIn === v} onClick={() => setCloseIn(v)}>
-                  {label}
+                  {t(label)}
                 </Chip>
               ))}
             </div>
@@ -404,7 +408,7 @@ export function PostJobForm({
             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4" role="group" aria-labelledby="repeat-label">
               {REPEAT_FREQUENCIES.map((r) => (
                 <Chip key={r} on={repeat === r} onClick={() => setRepeat(r)}>
-                  {REPEAT_LABELS[r]}
+                  {t(REPEAT_LABELS[r])}
                 </Chip>
               ))}
             </div>
@@ -443,15 +447,15 @@ export function PostJobForm({
       <div className="sticky bottom-[5.5rem] z-10 flex items-center gap-3 rounded-[22px] bg-primary p-3 pl-4 text-primary-foreground shadow-lift md:bottom-4">
         <span className="min-w-0 flex-1">
           <span className="block truncate font-bold">
-            {scope.summary} · {mode === "FCL" ? `${qty} × ${ctype}` : mode === "Air" ? "Air" : "Sea LCL"}
+            {t(scope.summary)} · {mode === "FCL" ? `${qty} × ${ctype}` : mode === "Air" ? t("Air") : t("Sea LCL")}
           </span>
           <span className="block truncate text-xs text-cyan-100">
-            {incoterm} · closes in {closeLabel}
-            {repeat !== "one_off" ? ` · ${REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]}` : ""}
+            {t("{term} · closes in {time}", { term: incoterm, time: closeLabel })}
+            {repeat !== "one_off" ? ` · ${t(REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]])}` : ""}
           </span>
         </span>
         <Button type="submit" disabled={pending} className="shrink-0 bg-cyan-300 text-primary hover:bg-cyan-200">
-          {pending ? "Posting…" : "Post request"}
+          {pending ? t("Posting…") : t("Post request")}
         </Button>
       </div>
     </form>

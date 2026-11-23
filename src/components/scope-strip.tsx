@@ -52,7 +52,7 @@ export function ScopeStrip({
             <span className={tile} aria-hidden>
               <Icon className="h-5 w-5" />
             </span>
-            <span className={label}>{leg.label}</span>
+            <span className={label}>{t(leg.label)}</span>
           </>
         );
         return (
@@ -65,12 +65,12 @@ export function ScopeStrip({
                 className="flex min-h-11 w-full flex-col items-center gap-1"
               >
                 {content}
-                <span className="sr-only">{leg.on ? "included, tap to remove" : "not included, tap to add"}</span>
+                <span className="sr-only">{leg.on ? t("included, tap to remove") : t("not included, tap to add")}</span>
               </button>
             ) : (
               <div className="flex flex-col items-center gap-1">
                 {content}
-                <span className="sr-only">{leg.on ? "you price this" : "not needed"}</span>
+                <span className="sr-only">{leg.on ? t("you price this") : t("not needed")}</span>
               </div>
             )}
           </li>

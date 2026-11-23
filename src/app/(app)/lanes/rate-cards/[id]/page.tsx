@@ -69,9 +69,9 @@ export default async function RateCardPage({ params }: { params: Promise<{ id: s
         {t("My lanes")}
       </Link>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{isNew ? "New rate card" : "Edit rate card"}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{isNew ? t("New rate card") : t("Edit rate card")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Private to {me.company.name}. When a job arrives for this port, its quote opens already filled in. You check it and tap Send.
+          {t("Private to {name}. When a job arrives for this port, its quote opens already filled in. You check it and tap Send.", { name: me.company.name })}
         </p>
       </div>
       <RateCardForm key={initial.id ?? "new"} ports={(ports ?? []) as PortOption[]} initial={initial} minDate={inDays(0)} />

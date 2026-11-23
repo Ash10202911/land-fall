@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
 import { notifyJobCancelled } from "@/lib/notifications";
+import { notifyLaneAlertsForExtension } from "@/lib/lane-notifications";
 import { fieldErrors, type FormState } from "@/lib/validation/auth";
 import { checkDeadlineExtension, deadlineToDate, jobEditSchema } from "@/lib/validation/job";
 
@@ -24,6 +25,24 @@ export async function cancelJob(jobId: string): Promise<void> {
   revalidatePath("/jobs");
   revalidatePath("/quotes");
   redirect(`/jobs/${jobId}`);
+}
+
+/**
+ * One-tap extension of a quiet job: 24 or 48 hours, only in its last 12 hours with no live quotes, at most
+ * twice. The database enforces every rule; the lanes are told again once per extension.
+ */
+export async function extendJob(jobId: string, hours: number): Promise<void> {
+  await requireMember();
+  if (!UUID.test(jobId) || (hours !== 24 && hours !== 48)) redirect("/jobs");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("extend_job", { p_job_id: jobId, p_hours: hours });
+  if (error) redirect(`/jobs/${jobId}?job_error=extend`);
+
+  await notifyLaneAlertsForExtension(jobId);
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/jobs");
+  redirect(`/jobs/${jobId}?extended=${hours}`);
 }
 
 function friendlyError(message: string | undefined): string {

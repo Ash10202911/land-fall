@@ -118,7 +118,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
         <ul className="space-y-3">
           {charges.map((r, i) => (
             <li key={i} className="space-y-3 rounded-2xl border border-border bg-card p-3 shadow-card">
-              <Field label={`Charge ${i + 1}`} htmlFor={`charge-name-${i}`} error={err(i, "name")}>
+              <Field label={t("Charge {n}", { n: i + 1 })} htmlFor={`charge-name-${i}`} error={err(i, "name")}>
                 <Input id={`charge-name-${i}`} value={r.name} placeholder={t("Port service charge (THC)")} onChange={(ev) => patch(charges, setCharges, i, { name: ev.target.value })} aria-invalid={Boolean(err(i, "name"))} />
               </Field>
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -126,7 +126,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
                   <Select id={`charge-category-${i}`} value={r.category} onChange={(ev) => patch(charges, setCharges, i, { category: ev.target.value, unloadType: ev.target.value === "delivery" ? r.unloadType : "" })}>
                     {CHARGE_CATEGORIES.map((c) => (
                       <option key={c} value={c}>
-                        {CATEGORY_LABELS[c]}
+                        {t(CATEGORY_LABELS[c])}
                       </option>
                     ))}
                   </Select>
@@ -135,7 +135,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
                   <Select id={`charge-basis-${i}`} value={r.basis} onChange={(ev) => patch(charges, setCharges, i, { basis: ev.target.value })}>
                     {RATE_BASES.map((b) => (
                       <option key={b} value={b}>
-                        {BASIS_LABELS[b]}
+                        {t(BASIS_LABELS[b])}
                       </option>
                     ))}
                   </Select>
@@ -149,7 +149,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
                       <option value="">{t("Always")}</option>
                       {UNLOAD_TYPES.map((u) => (
                         <option key={u} value={u}>
-                          {UNLOAD_LABELS[u]}
+                          {t(UNLOAD_LABELS[u])}
                         </option>
                       ))}
                     </Select>
@@ -162,7 +162,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
                   {t("GST included")}
                 </label>
                 {charges.length > 1 ? (
-                  <Button type="button" variant="ghost" onClick={() => setCharges(charges.filter((_, idx) => idx !== i))} aria-label={`Remove charge ${i + 1}`}>
+                  <Button type="button" variant="ghost" onClick={() => setCharges(charges.filter((_, idx) => idx !== i))} aria-label={t("Remove charge {n}", { n: i + 1 })}>
                     <Trash2 className="h-4 w-4" aria-hidden />
                     {t("Remove")}
                   </Button>
@@ -190,7 +190,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
             const index = charges.length + j;
             return (
               <li key={j} className="space-y-3 rounded-2xl border border-border bg-card p-3 shadow-card">
-                <Field label={`Zone ${j + 1}`} htmlFor={`zone-name-${j}`} error={err(index, "name")}>
+                <Field label={t("Zone {n}", { n: j + 1 })} htmlFor={`zone-name-${j}`} error={err(index, "name")}>
                   <Input id={`zone-name-${j}`} value={r.name} placeholder={t("Zone 2 western Sydney")} onChange={(ev) => patch(zones, setZones, j, { name: ev.target.value })} aria-invalid={Boolean(err(index, "name"))} />
                 </Field>
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -204,7 +204,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
                     <Select id={`zone-basis-${j}`} value={r.basis} onChange={(ev) => patch(zones, setZones, j, { basis: ev.target.value })}>
                       {RATE_BASES.map((b) => (
                         <option key={b} value={b}>
-                          {BASIS_LABELS[b]}
+                          {t(BASIS_LABELS[b])}
                         </option>
                       ))}
                     </Select>
@@ -218,7 +218,7 @@ export function RateCardForm({ ports, initial, minDate }: { ports: PortOption[];
                     <input type="checkbox" checked={r.gstIncluded} onChange={(ev) => patch(zones, setZones, j, { gstIncluded: ev.target.checked })} className="h-5 w-5 accent-[var(--sea)]" />
                     {t("GST included")}
                   </label>
-                  <Button type="button" variant="ghost" onClick={() => setZones(zones.filter((_, idx) => idx !== j))} aria-label={`Remove zone ${j + 1}`}>
+                  <Button type="button" variant="ghost" onClick={() => setZones(zones.filter((_, idx) => idx !== j))} aria-label={t("Remove zone {n}", { n: j + 1 })}>
                     <Trash2 className="h-4 w-4" aria-hidden />
                     {t("Remove")}
                   </Button>

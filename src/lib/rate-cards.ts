@@ -1,3 +1,4 @@
+import { tEn, type Translator } from "@/lib/i18n";
 import { formatMoney } from "@/lib/domain";
 import { UNLOAD_LABELS } from "@/lib/scope";
 import { CATEGORY_SERVICE } from "@/lib/validation/rate-card";
@@ -44,6 +45,7 @@ export type PrefillLine = {
   amount: string;
   currency: string;
   gstIncluded: boolean;
+  category: "destination" | "customs" | "delivery";
   /** Where the line came from, shown to the forwarder so nothing is a surprise. */
   source: string;
   minor: number;
@@ -86,7 +88,7 @@ function quantity(row: ChargeRow, job: QuoteJob): { qty: number; label: (unit: s
  * for, the cartage zone that covers the delivery postcode, and any unload rule that matches. Nothing is
  * sent: the forwarder checks and edits the result before sending.
  */
-export function buildQuoteFromRateCard(card: RateCard, job: QuoteJob): { lines: PrefillLine[]; warnings: string[]; totalMinor: number } {
+export function buildQuoteFromRateCard(card: RateCard, job: QuoteJob, t: Translator = tEn): { lines: PrefillLine[]; warnings: string[]; totalMinor: number } {
   const lines: PrefillLine[] = [];
   const warnings: string[] = [];
   const rows = [...card.charges].sort((a, b) => a.position - b.position);
@@ -97,11 +99,11 @@ export function buildQuoteFromRateCard(card: RateCard, job: QuoteJob): { lines: 
   const zone =
     wantsDelivery && postcode !== null ? zones.find((z) => z.postcode_from! <= postcode && postcode <= z.postcode_to!) : undefined;
   if (wantsDelivery && zones.length === 0) {
-    warnings.push(`"${card.name}" has no cartage zones, so delivery is not included.`);
+    warnings.push(t("\"{name}\" has no cartage zones, so delivery is not included.", { name: card.name }));
   } else if (wantsDelivery && postcode === null) {
-    warnings.push("This job has no delivery postcode, so no cartage zone could be chosen.");
+    warnings.push(t("This job has no delivery postcode, so no cartage zone could be chosen."));
   } else if (wantsDelivery && !zone) {
-    warnings.push(`No cartage zone in "${card.name}" covers postcode ${job.delivery_postcode}. Add the cartage yourself.`);
+    warnings.push(t("No cartage zone in \"{name}\" covers postcode {postcode}. Add the cartage yourself.", { name: card.name, postcode: job.delivery_postcode ?? "" }));
   }
 
   for (const row of rows) {
@@ -120,13 +122,14 @@ export function buildQuoteFromRateCard(card: RateCard, job: QuoteJob): { lines: 
       amount: (minor / 100).toFixed(2),
       currency: card.currency,
       gstIncluded: row.gst_included,
+      category: row.category,
       source: row.kind === "zone" ? `${row.name} · postcode ${job.delivery_postcode}` : row.unload_type ? `Job says ${UNLOAD_LABELS[row.unload_type as keyof typeof UNLOAD_LABELS] ?? row.unload_type}` : "Rate card",
       minor,
     });
   }
 
   if (lines.length > 20) {
-    warnings.push("The rate card gave more than 20 lines, so the extra lines were left out.");
+    warnings.push(t("The rate card gave more than 20 lines, so the extra lines were left out."));
     lines.length = 20;
   }
   return { lines, warnings, totalMinor: lines.reduce((n, l) => n + l.minor, 0) };

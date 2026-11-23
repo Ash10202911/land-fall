@@ -9,10 +9,11 @@ import { ALERT_FREQUENCIES, FREQUENCY_LABELS } from "@/lib/lane-alerts";
 import type { FormState } from "@/lib/validation/auth";
 import { addLaneAlert } from "./actions";
 import { useT } from "@/components/i18n-provider";
+import { msg } from "@/lib/i18n";
 
 export type PortOption = { id: number; code: string; name: string; country: string };
 
-const MODE_LABEL: Record<(typeof MODES)[number], string> = { FCL: "Sea, full container", LCL: "Sea, shared container", Air: "Air" };
+const MODE_LABEL: Record<(typeof MODES)[number], string> = { FCL: msg("Sea, full container"), LCL: msg("Sea, shared container"), Air: msg("Air") };
 const ANZ = ["Australia", "New Zealand"];
 
 /** Add a lane: where from, where to, which modes, and how often to be emailed. */
@@ -57,12 +58,12 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
               <optgroup label={t("A whole country")}>
                 {countries.map((c) => (
                   <option key={c} value={`country:${c}`}>
-                    {c} (any port)
+                    {t("{country} (any port)", { country: c })}
                   </option>
                 ))}
               </optgroup>
               {countries.map((c) => (
-                <optgroup key={c} label={`${c}: one port`}>
+                <optgroup key={c} label={t("{country}: one port", { country: c })}>
                   {overseas
                     .filter((p) => p.country === c)
                     .map((p) => (
@@ -101,7 +102,7 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
               <label key={m} className="relative inline-flex min-h-11 cursor-pointer items-center">
                 <input type="checkbox" name="modes" value={m} className="peer sr-only" />
                 <span className="rounded-xl border border-input bg-card px-3 py-2.5 text-sm font-semibold peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ring">
-                  {MODE_LABEL[m]}
+                  {t(MODE_LABEL[m])}
                 </span>
               </label>
             ))}
@@ -117,7 +118,7 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
           <Select id="frequency" name="frequency" defaultValue="instant">
             {ALERT_FREQUENCIES.filter((f) => f !== "off").map((f) => (
               <option key={f} value={f}>
-                {f === "instant" ? "Instantly, as each job is posted" : "One summary a day at 7am"}
+                {f === "instant" ? t("Instantly, as each job is posted") : t("One summary a day at 7am")}
               </option>
             ))}
           </Select>
@@ -133,7 +134,7 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
         </Button>
       </form>
       <p className="mt-3 text-xs text-muted-foreground">
-        {FREQUENCY_LABELS.daily} means 7am Sydney time. Alerts go to the person who creates the lane.
+        {t("{label} means 7am Sydney time. Alerts go to the person who creates the lane.", { label: t(FREQUENCY_LABELS.daily) })}
       </p>
     </details>
   );

@@ -15,6 +15,7 @@ import { isNewJob } from "@/lib/mode";
 import { getSeenAt, getViewMode } from "@/lib/view-mode";
 import { markJobsSeen } from "../mode-actions";
 import { getT } from "@/lib/i18n/server";
+import { msg } from "@/lib/i18n";
 
 export const metadata = { title: "Jobs" };
 
@@ -30,9 +31,9 @@ async function Heading({ eyebrow, note }: { eyebrow: string; note: string }) {
 }
 
 const STEPS = [
-  { icon: FilePlus2, title: "Request a quote", body: "Route, cargo and Incoterm in about 30 seconds. Your street address stays private." },
-  { icon: Lock, title: "Forwarders send sealed quotes", body: "Verified ANZ forwarders quote. Only you see the prices." },
-  { icon: Trophy, title: "Compare and award", body: "Line by line. Contact details unlock for you and the winner only." },
+  { icon: FilePlus2, title: msg("Request a quote"), body: msg("Route, cargo and Incoterm in about 30 seconds. Your street address stays private.") },
+  { icon: Lock, title: msg("Forwarders send sealed quotes"), body: msg("Verified ANZ forwarders quote. Only you see the prices.") },
+  { icon: Trophy, title: msg("Compare and award"), body: msg("Line by line. Contact details unlock for you and the winner only.") },
 ];
 
 /** Shown to a requester with no jobs yet: what happens next, and one clear action. */
@@ -61,10 +62,10 @@ async function RequesterWelcome() {
                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-card text-sea-ink shadow-card" aria-hidden>
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="text-xs font-bold text-sea-ink">Step {i + 1}</span>
+                <span className="text-xs font-bold text-sea-ink">{t("Step {n}", { n: i + 1 })}</span>
               </span>
-              <p className="mt-3 font-bold">{title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+              <p className="mt-3 font-bold">{t(title)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t(body)}</p>
             </li>
           ))}
         </ol>
@@ -100,6 +101,7 @@ async function RequesterView({ company, now }: { company: Company; now: Date }) 
       myCompanyId: company.id,
       now,
       limit: 50,
+      tr: t,
     }),
     "requester",
   );
@@ -192,10 +194,8 @@ async function QuoterView({
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-primary p-3 pl-4 text-primary-foreground" role="status">
           <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-cyan-300 motion-reduce:animate-none" aria-hidden />
           <p className="min-w-0 flex-1 text-sm">
-            <strong className="text-cyan-200">
-              {newCount} new {newCount === 1 ? "job" : "jobs"}
-            </strong>{" "}
-            since your last visit
+            <strong className="text-cyan-200">{t.plural(newCount, "{n} new job", "{n} new jobs")}</strong>{" "}
+            {t("since your last visit")}
           </p>
           {!onlyNew ? (
             <Link href="/jobs?new=1" className="inline-flex min-h-10 items-center rounded-xl bg-cyan-300 px-3 text-sm font-bold text-primary">

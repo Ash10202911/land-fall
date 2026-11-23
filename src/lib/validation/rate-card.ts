@@ -1,23 +1,24 @@
 import { z } from "zod";
 import { CURRENCIES, parseMoneyToMinor } from "@/lib/domain";
 import { UNLOAD_TYPES } from "@/lib/scope";
+import { msg } from "@/lib/i18n";
 
 export const CHARGE_KINDS = ["charge", "zone"] as const;
 export const CHARGE_CATEGORIES = ["destination", "customs", "delivery"] as const;
 export const RATE_BASES = ["per_job", "per_container", "per_20ft", "per_40ft", "per_cbm", "per_kg"] as const;
 
 export const CATEGORY_LABELS: Record<(typeof CHARGE_CATEGORIES)[number], string> = {
-  destination: "Destination port",
-  customs: "Customs",
-  delivery: "Delivery",
+  destination: msg("Destination port"),
+  customs: msg("Customs"),
+  delivery: msg("Delivery"),
 };
 export const BASIS_LABELS: Record<(typeof RATE_BASES)[number], string> = {
-  per_job: "per job",
-  per_container: "per container",
-  per_20ft: "per 20ft container",
-  per_40ft: "per 40ft container",
-  per_cbm: "per cbm",
-  per_kg: "per kg",
+  per_job: msg("per job"),
+  per_container: msg("per container"),
+  per_20ft: msg("per 20ft container"),
+  per_40ft: msg("per 40ft container"),
+  per_cbm: msg("per cbm"),
+  per_kg: msg("per kg"),
 };
 
 /** The job services each charge category answers to. */

@@ -15,16 +15,17 @@ import {
   type QuoteScorecard,
 } from "@/lib/dashboard";
 import { useT } from "@/components/i18n-provider";
+import { msg, type Translator } from "@/lib/i18n";
 
 const toneLabel: Record<ActionTone, string> = {
-  danger: "Blocked",
-  warning: "Act soon",
-  success: "Ready",
-  neutral: "Opportunity",
+  danger: msg("Blocked"),
+  warning: msg("Act soon"),
+  success: msg("Ready"),
+  neutral: msg("Opportunity"),
 };
 
 const shortName = (n: string) => n.replace(/\s*\([^)]*\)\s*$/, "");
-const rate = (v: number | null) => (v === null ? "None yet" : `${v}%`);
+const rate = (v: number | null, t: Translator) => (v === null ? t("None yet") : `${v}%`);
 
 export function Section({
   id,
@@ -91,7 +92,7 @@ export function ActionList({ items }: { items: ActionItem[] }) {
                   <p className="text-sm text-muted-foreground">{a.detail}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <Badge tone={a.tone}>{toneLabel[a.tone]}</Badge>
+                  <Badge tone={a.tone}>{t(toneLabel[a.tone])}</Badge>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden />
                 </div>
               </Card>
@@ -108,26 +109,25 @@ export function JobScorecardView({ s }: { s: JobScorecard }) {
   const t = useT();
   if (s.posted === 0) return null;
   return (
-    <Section id="posting-heading" title={t("How your requests are doing")} note={`Last ${s.days} days.`}>
+    <Section id="posting-heading" title={t("How your requests are doing")} note={t("Last {n} days.", { n: s.days })}>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="job-scorecard">
-        <Stat label={t("Jobs posted")} value={String(s.posted)} hint={`${s.open} open, ${s.awarded} awarded, ${s.cancelled} cancelled`} />
+        <Stat label={t("Jobs posted")} value={String(s.posted)} hint={t("{open} open, {awarded} awarded, {cancelled} cancelled", { open: s.open, awarded: s.awarded, cancelled: s.cancelled })} />
         <Stat
           label={t("Award rate")}
-          value={rate(s.awardRate)}
-          hint={s.expired > 0 ? `${s.expired} closed without an award` : "Of jobs that have closed"}
+          value={rate(s.awardRate, t)}
+          hint={s.expired > 0 ? t("{n} closed without an award", { n: s.expired }) : t("Of jobs that have closed")}
         />
         <Stat
           label={t("Quotes per job")}
-          value={s.avgQuotesPerJob === null ? "None yet" : String(s.avgQuotesPerJob)}
-          hint={s.noQuoteRate === null ? undefined : `${s.noQuoteRate}% of closed jobs got none`}
+          value={s.avgQuotesPerJob === null ? t("None yet") : String(s.avgQuotesPerJob)}
+          hint={s.noQuoteRate === null ? undefined : t("{n}% of closed jobs got none", { n: s.noQuoteRate })}
         />
-        <Stat label={t("Time to first quote")} value={formatHours(s.medianHoursToFirstQuote)} hint={t("Median")} />
+        <Stat label={t("Time to first quote")} value={formatHours(s.medianHoursToFirstQuote, t)} hint={t("Median")} />
       </div>
       {s.avgPriceSpreadPct !== null ? (
         <p className="text-sm text-muted-foreground">
-          The lowest quote was on average {s.avgPriceSpreadPct}% below the highest, across {s.spreadJobs}{" "}
-          {s.spreadJobs === 1 ? "comparison" : "comparisons"}.
-          {s.awardsCompared > 0 ? ` You chose the lowest quote in ${s.lowestPicked} of ${s.awardsCompared} awards.` : ""}
+          {t.plural(s.spreadJobs, "The lowest quote was on average {pct}% below the highest, across {n} comparison.", "The lowest quote was on average {pct}% below the highest, across {n} comparisons.", { pct: s.avgPriceSpreadPct })}
+          {s.awardsCompared > 0 ? ` ${t("You chose the lowest quote in {picked} of {total} awards.", { picked: s.lowestPicked, total: s.awardsCompared })}` : ""}
         </p>
       ) : null}
     </Section>
@@ -141,13 +141,13 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
   const win = s.winRate ?? 0;
   const arc = Math.PI * 62;
   return (
-    <Section id="quoting-heading" title={t("How your quotes are doing")} note={`Last ${s.days} days.`}>
+    <Section id="quoting-heading" title={t("How your quotes are doing")} note={t("Last {n} days.", { n: s.days })}>
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <Card className="flex items-center gap-4 p-4 sm:p-4" data-testid="quote-scorecard">
           <div
             className="relative h-[88px] w-[150px] shrink-0"
             role="img"
-            aria-label={s.winRate === null ? "Win rate: nothing decided yet" : `Win rate ${s.winRate} percent`}
+            aria-label={s.winRate === null ? t("Win rate: nothing decided yet") : t("Win rate {n} percent", { n: s.winRate })}
           >
             <svg width="150" height="88" viewBox="0 0 150 88" aria-hidden>
               <path d="M 13 80 A 62 62 0 0 1 137 80" fill="none" stroke="var(--muted)" strokeWidth="14" strokeLinecap="round" />
@@ -161,7 +161,7 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
               />
             </svg>
             <span className="absolute inset-x-0 bottom-0 text-center">
-              <span className="block text-2xl font-bold">{rate(s.winRate)}</span>
+              <span className="block text-2xl font-bold">{rate(s.winRate, t)}</span>
               <span className="text-xs text-muted-foreground">{t("win rate")}</span>
             </span>
           </div>
@@ -169,7 +169,7 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
             <li className="flex justify-between gap-2"><span>{t("Sent")}</span><strong>{s.sent}</strong></li>
             <li className="flex justify-between gap-2"><span>{t("Still open")}</span><strong>{s.open}</strong></li>
             <li className="flex justify-between gap-2"><span>{t("Won / lost")}</span><strong>{s.won} / {s.lost}</strong></li>
-            <li className="flex justify-between gap-2"><span>{t("Your median reply")}</span><strong>{formatHours(s.medianHoursToQuote)}</strong></li>
+            <li className="flex justify-between gap-2"><span>{t("Your median reply")}</span><strong>{formatHours(s.medianHoursToQuote, t)}</strong></li>
           </ul>
         </Card>
         <Card className="space-y-3 p-4 sm:p-4">
@@ -179,7 +179,7 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
           ) : (
             <ul className="space-y-3">
               {s.byMode.map((m) => (
-                <Bar key={m.mode} label={m.mode} value={m.winRate ?? 0} max={100} text={`${rate(m.winRate)} · ${m.sent} sent`} />
+                <Bar key={m.mode} label={m.mode} value={m.winRate ?? 0} max={100} text={`${rate(m.winRate, t)} · ${t("{n} sent", { n: m.sent })}`} />
               ))}
             </ul>
           )}
@@ -204,7 +204,7 @@ export function LaneDemandView({ d }: { d: LaneDemand }) {
     <Section
       id="demand-heading"
       title={t("Where the demand is")}
-      note={`Jobs posted in the last ${d.days} days, compared with the ${d.days} days before.`}
+      note={t("Jobs posted in the last {n} days, compared with the {n} days before.", { n: d.days })}
     >
       <Card className="space-y-4 p-4 sm:p-4" data-testid="lane-demand">
         <ul className="space-y-4">
@@ -214,17 +214,17 @@ export function LaneDemandView({ d }: { d: LaneDemand }) {
               <li key={l.key} className="space-y-1">
                 <div className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="min-w-0 font-medium">
-                    {shortName(l.origin)} to {shortName(l.destination)}
+                    {t("{origin} to {destination}", { origin: shortName(l.origin), destination: shortName(l.destination) })}
                   </span>
                   <span className="shrink-0 text-muted-foreground">
-                    {l.jobs} {l.jobs === 1 ? "job" : "jobs"}
+                    {t.plural(l.jobs, "{n} job", "{n} jobs")}
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-muted" aria-hidden>
                   <div className="h-2 rounded-full bg-sea" style={{ width: `${Math.max(4, Math.round((l.jobs / maxLane) * 100))}%` }} />
                 </div>
                 <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-                  <span>{l.openNow} open now</span>
+                  <span>{t("{n} open now", { n: l.openNow })}</span>
                   <span>{l.modes}</span>
                   <span className="inline-flex items-center gap-1">
                     {change > 0 ? (
@@ -232,7 +232,7 @@ export function LaneDemandView({ d }: { d: LaneDemand }) {
                     ) : change < 0 ? (
                       <TrendingDown className="h-3.5 w-3.5 text-destructive" aria-hidden />
                     ) : null}
-                    {change > 0 ? `up ${change}` : change < 0 ? `down ${-change}` : "no change"} on the period before
+                    {change > 0 ? t("up {n} on the period before", { n: change }) : change < 0 ? t("down {n} on the period before", { n: -change }) : t("no change on the period before")}
                   </span>
                 </p>
               </li>

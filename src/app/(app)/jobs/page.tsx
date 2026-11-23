@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FilePlus2 } from "lucide-react";
+import { FilePlus2, Lock, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/card";
 import { Select } from "@/components/ui/form";
@@ -23,6 +23,49 @@ function Heading({ eyebrow, note }: { eyebrow: string; note: string }) {
       <p className="text-sm font-semibold text-accent">{eyebrow}</p>
       <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Jobs</h1>
       <p className="mt-1 text-sm text-muted-foreground">{note}</p>
+    </div>
+  );
+}
+
+const STEPS = [
+  { icon: FilePlus2, title: "Request a quote", body: "Route, cargo and Incoterm in about 30 seconds. Your street address stays private." },
+  { icon: Lock, title: "Forwarders send sealed quotes", body: "Verified ANZ forwarders quote. Only you see the prices." },
+  { icon: Trophy, title: "Compare and award", body: "Line by line. Contact details unlock for you and the winner only." },
+];
+
+/** Shown to a requester with no jobs yet: what happens next, and one clear action. */
+function RequesterWelcome() {
+  return (
+    <div className="overflow-hidden rounded-[22px] border border-border bg-card shadow-card">
+      <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center">
+        <div className="space-y-3">
+          <h3 className="text-2xl font-bold tracking-tight">Get sealed quotes from verified ANZ forwarders</h3>
+          <p className="text-muted-foreground">
+            Post your first request and it appears on the job board of every forwarder watching that lane.
+          </p>
+          <Link
+            href="/post"
+            className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground"
+          >
+            <FilePlus2 className="h-4 w-4" aria-hidden />
+            Request your first quote
+          </Link>
+        </div>
+        <ol className="grid gap-3 sm:grid-cols-3">
+          {STEPS.map(({ icon: Icon, title, body }, i) => (
+            <li key={title} className="rounded-2xl border border-border bg-sea-soft p-4">
+              <span className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-card text-sea-ink shadow-card" aria-hidden>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="text-xs font-bold text-sea-ink">Step {i + 1}</span>
+              </span>
+              <p className="mt-3 font-bold">{title}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   );
 }
@@ -76,9 +119,9 @@ async function RequesterView({ company, now }: { company: Company; now: Date }) 
           Your requests
         </h2>
         {mine.length === 0 ? (
-          <EmptyState title="You have not requested a quote yet" body="Use Request quote to ask forwarders for sealed quotes." />
+          <RequesterWelcome />
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 [&>li]:min-w-0">
             {mine.map(({ job, quoteCount }) => (
               <li key={job.id}>
                 <JobCard job={job} now={now} quoteCount={quoteCount} />
@@ -197,7 +240,7 @@ async function QuoterView({
           body={filtered ? "Try a different destination or mode." : "New jobs from other companies appear here, newest first."}
         />
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 [&>li]:min-w-0">
           {jobs.map(({ job, isNew }) => (
             <li key={job.id}>
               <JobCard job={job} now={now} isNew={isNew} band={bands.get(job.id)} />

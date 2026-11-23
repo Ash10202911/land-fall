@@ -74,7 +74,7 @@ export default async function MyQuotesPage() {
         {quotes.length === 0 ? (
           <EmptyState title="You have not sent any quotes yet" body="Switch to the Job board and send a sealed quote on an open job." />
         ) : (
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 [&>li]:min-w-0">
             {quotes.map((q) => {
               const o = q.job?.origin as Port | undefined;
               const d = q.job?.destination as Port | undefined;

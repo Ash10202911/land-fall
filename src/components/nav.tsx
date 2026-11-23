@@ -74,7 +74,7 @@ export function TopNav({ mode }: { mode: ViewMode }) {
   const items = navItemsFor(mode);
   return (
     <header className="sticky top-0 z-10 border-b border-border/70 bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
         <Logo />
         <ModeSwitch mode={mode} />
         <nav aria-label="Sections" className="hidden md:block">

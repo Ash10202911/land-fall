@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <TopNav mode={mode} />
-      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-7xl px-4 pb-28 pt-4 sm:px-6 md:pb-10 md:pt-8 lg:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-screen-2xl px-4 pb-28 pt-4 sm:px-6 md:pb-10 md:pt-8 lg:px-10">
         {children}
       </main>
       <BottomNav mode={mode} />

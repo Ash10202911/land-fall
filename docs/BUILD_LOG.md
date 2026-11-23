@@ -75,6 +75,27 @@ Written by Claude Code during `/build-core`.
 | - Decision: world outline is defined once per page | noted | Cards reference it with use; 62 cards went from 2.7 MB to 1.5 MB of HTML in development |
 | Checks | pass | lint clean; typecheck clean; npm test 80 passed (11 files); test:rls 83 passed (10 files) after db reset; next build compiled; Playwright 5 passed on iPhone 13 (journey, lifecycle, 3 mode tests) |
 
+## v2 phase 2: speed (lane alerts, rate cards, pre-filled quotes), on branch v2
+| Item | Status | Evidence |
+|---|---|---|
+| Migration 20261123000100: lane_alerts, lane_alert_deliveries, rate_cards, rate_card_charges, save_rate_card | done | sec10-lanes-and-rate-cards.test.ts: 17 tests |
+| Lane alerts and rate cards are private to the company (not even admins can read them) | done | sec10: other company, admin and signed-out callers read, edit and delete nothing; cannot plant rows on another company's card; suspended companies refused |
+| Atomic card save (card and all rows, or nothing) | done | sec10: a bad row rolls the whole save back; limits of 20 alerts and 10 cards per company |
+| Delivery log is server-only | done | Explicit deny-all policy (the existing "every table has a policy" test stays strict); sec10 checks no signed-in user can read or write it |
+| Pre-filled quotes from a rate card | done | rate-cards.test.ts (container basis, 20ft or 40ft, per cbm and kg, zone by postcode, unload rule, service filter, warnings, 20-line cap); e2e builds a card in the app and checks the quote lines and total |
+| Rate card in-app editor | done | e2e lanes.spec.ts (mistake shown on the field, nothing saved until valid) |
+| Rate card upload | done as CSV | parseRateSheet tests (template round trip, quotes, BOM, semicolon files with decimal commas, row-numbered errors, size and row limits); e2e uploads good and bad files |
+| Lane alerts: instant and daily | done | planRun tests (matching, no repeats, grouping, own jobs excluded); e2e: posting a matching job records the delivery; the daily route refuses callers without the secret, sends once and never repeats |
+| Daily summary at 7am Sydney | done | Two cron times (20:00 and 21:00 UTC) cover daylight saving; sydneyHour tests; the route acts only when it is 7am in Sydney |
+| Menu: My lanes added to Quoter mode | done | mode.test.ts |
+| - Decision: rate cards upload as CSV, not .xlsx | noted | Excel opens and saves CSV; reading .xlsx needs a third-party library, which is a supply-chain and security trade-off to decide on separately |
+| - Decision: rate card amounts are stricter than quote amounts | noted | Commas must be real thousands separators (1,250.50). Semicolon files use a decimal comma. Anything ambiguous is rejected rather than guessed |
+| - Decision: a human always sends the quote | noted | Pre-fill only; lines changed by the forwarder are marked "edited" |
+| - Decision: alert emails carry public job details only | noted | No street address, no quotes, no price except the recipient's own rate card total |
+| - Needs for production | open | RESEND_API_KEY and a sending domain (otherwise emails go to the server log); CRON_SECRET in Vercel (16+ characters); SUPABASE_SERVICE_ROLE_KEY already set |
+| Found while testing | fixed | A form submitted with a React action cleared the name and port after a rejected upload; the upload and add-lane forms now keep what was typed |
+| Checks | pass | lint clean; typecheck clean; npm test 120 passed (13 files); test:rls 100 passed (11 files) after db reset; next build compiled; Playwright 10 passed on iPhone 13 |
+
 ## Definition of done
 | # | Item | Evidence | Pass |
 |---|---|---|---|

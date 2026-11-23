@@ -144,6 +144,46 @@ export function toBrief(j: JobForBrief): JobBrief {
   };
 }
 
+/** The hour (0 to 23) in Sydney, which handles daylight saving. */
+export function sydneyHour(date: Date): number {
+  const h = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Sydney", hour: "numeric", hourCycle: "h23" }).format(date);
+  return Number(h);
+}
+
+export type AlertWithRecipient = AlertRow & { recipient: string };
+export type RunJob = MatchJob & JobForBrief;
+export type RunEmail = { to: string; companyId: string; jobs: RunJob[]; pairs: { alertId: string; jobId: string }[] };
+
+/**
+ * Decides who is emailed about which jobs. For each alert of the given frequency, every matching job it
+ * has not already been told about becomes a pair. Pairs are grouped so each person gets one email, with
+ * each job listed once even when two of their alerts match it. Pure: the caller reads and writes the database.
+ */
+export function planRun(args: {
+  alerts: AlertWithRecipient[];
+  jobs: RunJob[];
+  /** "alertId:jobId" for every alert already emailed about a job. */
+  delivered: ReadonlySet<string>;
+  frequency: "instant" | "daily";
+}): RunEmail[] {
+  const pairs: { alertId: string; recipient: string; jobId: string; companyId: string }[] = [];
+  for (const alert of args.alerts) {
+    if (alert.frequency !== args.frequency || !alert.recipient) continue;
+    for (const job of args.jobs) {
+      if (args.delivered.has(`${alert.id}:${job.id}`)) continue;
+      if (!laneMatches(alert, job)) continue;
+      pairs.push({ alertId: alert.id, recipient: alert.recipient, jobId: job.id, companyId: alert.company_id });
+    }
+  }
+  const byId = new Map(args.jobs.map((j) => [j.id, j]));
+  return [...groupForDigest(pairs)].map(([to, g]) => ({
+    to,
+    companyId: g.pairs[0].companyId,
+    jobs: g.jobIds.map((id) => byId.get(id)!),
+    pairs: g.pairs.map((p) => ({ alertId: p.alertId, jobId: p.jobId })),
+  }));
+}
+
 /** Groups matched jobs per recipient and per job, so one person gets one email and each job appears once. */
 export function groupForDigest<T extends { alertId: string; recipient: string; jobId: string }>(
   pairs: T[],

@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { groupForDigest, laneMatches, planDigest, planInstantAlert, toBrief, type AlertRow, type JobForBrief, type MatchJob } from "./lane-alerts";
+import {
+  groupForDigest,
+  laneMatches,
+  planDigest,
+  planInstantAlert,
+  planRun,
+  sydneyHour,
+  toBrief,
+  type AlertRow,
+  type AlertWithRecipient,
+  type JobForBrief,
+  type MatchJob,
+  type RunJob,
+} from "./lane-alerts";
 
 const alert = (over: Partial<AlertRow> = {}): AlertRow => ({
   id: "a1",
@@ -116,6 +129,57 @@ describe("alert emails", () => {
     expect(d.text).toContain("Ningbo to Melbourne");
     expect(d.text).toContain("https://app.test/jobs/j2");
     expect(planDigest({ baseUrl: "https://app.test", to: "a@b.test", jobs: [b2] }).subject).toBe("1 new job on your lanes");
+  });
+});
+
+describe("sydneyHour", () => {
+  it("is 7am at 20:00 UTC in summer and 21:00 UTC in winter, so two cron times cover daylight saving", () => {
+    expect(sydneyHour(new Date("2026-11-23T20:00:00Z"))).toBe(7);
+    expect(sydneyHour(new Date("2026-11-23T21:00:00Z"))).toBe(8);
+    expect(sydneyHour(new Date("2026-06-23T21:00:00Z"))).toBe(7);
+    expect(sydneyHour(new Date("2026-06-23T20:00:00Z"))).toBe(6);
+  });
+});
+
+describe("planRun", () => {
+  const rj = (over: Partial<RunJob> & { id: string }): RunJob => ({ ...job, ...brief, ...over });
+  const a = (over: Partial<AlertWithRecipient> & { id: string }): AlertWithRecipient => ({ ...alert(), recipient: "x@t.test", ...over });
+
+  it("emails each matching alert once per job, grouped by person", () => {
+    const runs = planRun({
+      alerts: [a({ id: "a1" }), a({ id: "a2", origin_country: "China" }), a({ id: "a3", recipient: "y@t.test" })],
+      jobs: [rj({ id: "j1" })],
+      delivered: new Set(),
+      frequency: "instant",
+    });
+    expect(runs.map((r) => r.to)).toEqual(["x@t.test", "y@t.test"]);
+    expect(runs[0].jobs.map((j) => j.id)).toEqual(["j1"]);
+    expect(runs[0].pairs).toEqual([{ alertId: "a1", jobId: "j1" }, { alertId: "a2", jobId: "j1" }]);
+    expect(runs[0].companyId).toBe("quoter");
+  });
+
+  it("skips what was already delivered, so a retry or a second run sends nothing twice", () => {
+    const base = { alerts: [a({ id: "a1" })], jobs: [rj({ id: "j1" }), rj({ id: "j2" })], frequency: "instant" as const };
+    expect(planRun({ ...base, delivered: new Set(["a1:j1"]) })[0].jobs.map((j) => j.id)).toEqual(["j2"]);
+    expect(planRun({ ...base, delivered: new Set(["a1:j1", "a1:j2"]) })).toEqual([]);
+  });
+
+  it("only uses alerts of the requested frequency, never off alerts, and ignores non-matching jobs", () => {
+    const alerts = [a({ id: "inst" }), a({ id: "day", frequency: "daily" }), a({ id: "off", frequency: "off" })];
+    expect(planRun({ alerts, jobs: [rj({ id: "j1" })], delivered: new Set(), frequency: "daily" })[0].pairs).toEqual([{ alertId: "day", jobId: "j1" }]);
+    expect(planRun({ alerts, jobs: [rj({ id: "j1" })], delivered: new Set(), frequency: "instant" })[0].pairs).toEqual([{ alertId: "inst", jobId: "j1" }]);
+    expect(planRun({ alerts, jobs: [rj({ id: "j1", destination_port_id: 99 })], delivered: new Set(), frequency: "instant" })).toEqual([]);
+  });
+
+  it("never emails a company about its own job, or an alert with no recipient", () => {
+    expect(planRun({ alerts: [a({ id: "a1", company_id: "requester" })], jobs: [rj({ id: "j1" })], delivered: new Set(), frequency: "instant" })).toEqual([]);
+    expect(planRun({ alerts: [a({ id: "a1", recipient: "" })], jobs: [rj({ id: "j1" })], delivered: new Set(), frequency: "instant" })).toEqual([]);
+  });
+
+  it("builds a digest with several jobs for one person", () => {
+    const runs = planRun({ alerts: [a({ id: "d1", frequency: "daily" })], jobs: [rj({ id: "j1" }), rj({ id: "j2" })], delivered: new Set(), frequency: "daily" });
+    expect(runs).toHaveLength(1);
+    expect(runs[0].jobs.map((j) => j.id)).toEqual(["j1", "j2"]);
   });
 });
 

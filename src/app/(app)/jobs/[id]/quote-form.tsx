@@ -8,7 +8,8 @@ import { CURRENCIES, formatMoney, parseMoneyToMinor, totalsByCurrency } from "@/
 import type { FormState } from "@/lib/validation/auth";
 import { submitQuote, updateQuote } from "./quote-actions";
 
-export type LineDraft = { chargeName: string; amount: string; currency: string; gstIncluded: boolean };
+/** `source` is set on lines filled in from a rate card; it is for display only and is never saved. */
+export type LineDraft = { chargeName: string; amount: string; currency: string; gstIncluded: boolean; source?: string };
 
 const blankLine = (): LineDraft => ({ chargeName: "", amount: "", currency: "AUD", gstIncluded: true });
 
@@ -46,7 +47,14 @@ export function QuoteForm({
   );
 
   function update(i: number, patch: Partial<LineDraft>) {
-    setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+    setLines((prev) =>
+      prev.map((l, idx) => {
+        if (idx !== i) return l;
+        // Changing a line that came from a rate card marks it, so the forwarder can see what they touched.
+        const touched = l.source && !l.source.endsWith("(edited)") && ("chargeName" in patch || "amount" in patch);
+        return { ...l, ...patch, ...(touched ? { source: `${l.source} (edited)` } : {}) };
+      }),
+    );
   }
 
   return (
@@ -63,6 +71,11 @@ export function QuoteForm({
       <ul className="space-y-3">
         {lines.map((line, i) => (
           <li key={i} className="space-y-3 rounded-xl border border-border p-3">
+            {line.source ? (
+              <p className="inline-flex items-center rounded-md bg-sea-soft px-2 py-1 text-xs font-semibold text-sea-ink" data-testid="line-source">
+                {line.source}
+              </p>
+            ) : null}
             <Field label={`Charge ${i + 1}`} htmlFor={`charge-${i}`} error={e[`lines.${i}.chargeName`]}>
               <Input
                 id={`charge-${i}`}

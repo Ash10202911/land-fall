@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { expectNoHorizontalScroll, signInUrl, watchErrors } from "./support";
+import { admin, expectNoHorizontalScroll, runId, signInUrl, watchErrors } from "./support";
 
 // Seeded demo companies (local database only):
 //   agent@demo.test  Shenzhen Star Logistics, Verified agent: posts the Shenzhen and Ningbo jobs.
@@ -10,6 +10,34 @@ async function switchTo(page: Page, mode: "Requester" | "Quoter") {
   await page.getByRole("radio", { name: mode }).click();
   await expect(page.getByRole("radio", { name: mode })).toHaveAttribute("aria-checked", "true");
 }
+
+test("a job with a very long cargo description does not widen the board on a phone", async ({ page }) => {
+  // Posted by the seeded Basic agent, so it shows on the Verified forwarder's board.
+  const ports = await admin.from("ports").select("id, code").in("code", ["CNNGB", "AUMEL"]);
+  const id = (code: string) => ports.data?.find((p) => p.code === code)?.id;
+  const cargo = `E2E long ${runId}: ${"palletised flat-pack furniture and homewares with mixed cartons ".repeat(4)}`;
+  const { error } = await admin.from("jobs").insert({
+    company_id: "c0000000-0000-4000-8000-000000000003",
+    created_by: "a0000000-0000-4000-8000-000000000003",
+    direction: "import",
+    incoterm: "CIF",
+    mode: "FCL",
+    origin_port_id: id("CNNGB"),
+    destination_port_id: id("AUMEL"),
+    container_type: "40HC",
+    container_qty: 2,
+    cargo_description: cargo,
+    ready_date: new Date(Date.now() + 10 * 86_400_000).toISOString().slice(0, 10),
+    services: ["destination_charges"],
+    deadline_at: new Date(Date.now() + 3 * 86_400_000).toISOString(),
+  });
+  expect(error).toBeNull();
+
+  await page.goto(await signInUrl("fwd1@demo.test"));
+  await expect(page).toHaveURL(/\/jobs$/);
+  await expect(page.getByText(`E2E long ${runId}`).first()).toBeAttached();
+  expect(await expectNoHorizontalScroll(page)).toBe(0);
+});
 
 test("an agent lands in Requester mode, switches to Quoter and the choice persists", async ({ page }) => {
   const errors: string[] = [];

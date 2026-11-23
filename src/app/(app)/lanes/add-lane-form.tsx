@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Select } from "@/components/ui/form";
@@ -38,7 +38,16 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
         <Plus className="h-4 w-4" aria-hidden />
         Add a lane
       </summary>
-      <form ref={formRef} action={action} className="mt-4 space-y-4">
+      <form
+        ref={formRef}
+        noValidate
+        className="mt-4 space-y-4"
+        onSubmit={(ev) => {
+          ev.preventDefault();
+          const data = new FormData(ev.currentTarget);
+          startTransition(() => action(data));
+        }}
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="From" htmlFor="origin" error={e.origin}>
             <Select id="origin" name="origin" defaultValue="any" aria-invalid={Boolean(e.origin)}>

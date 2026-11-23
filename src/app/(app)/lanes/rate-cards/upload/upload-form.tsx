@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/form";
 import { CURRENCIES } from "@/lib/domain";
@@ -16,7 +16,17 @@ export function UploadForm({ ports, defaultCurrency, minDate, defaultValidTo }: 
   const fileErrors = e.file ? e.file.split("\n") : [];
 
   return (
-    <form action={action} noValidate className="space-y-4 rounded-[20px] border border-border bg-card p-4 shadow-card">
+    <form
+      noValidate
+      className="space-y-4 rounded-[20px] border border-border bg-card p-4 shadow-card"
+      // Submitted by hand rather than with form action, because React clears a form after its action ends and
+      // a rejected file must not wipe the name and port the person typed.
+      onSubmit={(ev) => {
+        ev.preventDefault();
+        const data = new FormData(ev.currentTarget);
+        startTransition(() => action(data));
+      }}
+    >
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Name" htmlFor="name" error={e.name}>
           <Input id="name" name="name" placeholder="Port Botany destination charges" aria-invalid={Boolean(e.name)} />

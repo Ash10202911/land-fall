@@ -19,5 +19,8 @@ export default defineConfig({
     url: "http://localhost:3000/sign-in",
     reuseExistingServer: true,
     timeout: 120_000,
+    // Lets the daily-summary test call the cron route. A dev server you started yourself needs the same
+    // value in .env.local (see .env.example).
+    env: { CRON_SECRET: process.env.CRON_SECRET ?? "e2e-cron-secret-for-local-tests-only" },
   },
 });

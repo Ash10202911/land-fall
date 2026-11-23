@@ -40,6 +40,62 @@ export async function createAdminUser(email: string) {
     .eq("id", created.data.user.id);
 }
 
+/** Creates a confirmed user with a company, as onboarding would, and returns their ids. */
+export async function createMember(
+  email: string,
+  opts: { name: string; role: "agent" | "forwarder"; trust?: "basic" | "verified"; country?: string },
+) {
+  const created = await admin.auth.admin.createUser({ email, email_confirm: true });
+  if (created.error || !created.data.user) throw created.error;
+  const company = await admin
+    .from("companies")
+    .insert({ name: opts.name, country: opts.country ?? "Australia", role: opts.role, trust_level: opts.trust ?? "basic" })
+    .select("id")
+    .single();
+  if (company.error) throw company.error;
+  await admin
+    .from("profiles")
+    .update({ company_id: company.data.id, full_name: opts.name, phone: "+61 400 000 000" })
+    .eq("id", created.data.user.id);
+  return { userId: created.data.user.id, companyId: company.data.id as string };
+}
+
+/** Inserts an open job with the service role (a stand-in for another company posting it). */
+export async function insertJob(
+  who: { userId: string; companyId: string },
+  route: { origin: string; destination: string },
+  extra: Record<string, unknown> = {},
+) {
+  const ports = await admin.from("ports").select("id, code").in("code", [route.origin, route.destination]);
+  const id = (code: string) => ports.data?.find((p) => p.code === code)?.id;
+  const day = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
+  const { data, error } = await admin
+    .from("jobs")
+    .insert({
+      company_id: who.companyId,
+      created_by: who.userId,
+      direction: "import",
+      incoterm: "CIF",
+      mode: "FCL",
+      origin_port_id: id(route.origin),
+      destination_port_id: id(route.destination),
+      container_type: "40HC",
+      container_qty: 2,
+      cargo_description: "E2E cargo",
+      ready_date: day(10).slice(0, 10),
+      services: ["destination_charges", "customs_clearance", "delivery"],
+      delivery_suburb: "Eagle Farm QLD",
+      delivery_postcode: "4009",
+      unload_type: "side_loader",
+      deadline_at: day(3),
+      ...extra,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data.id as string;
+}
+
 /** Collects browser console errors and failed requests so the journey can assert there are none. */
 export function watchErrors(page: Page, bucket: string[], label: string) {
   page.on("console", (msg) => {

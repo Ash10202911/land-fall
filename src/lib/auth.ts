@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { Locale } from "@/lib/i18n";
 
 export type Company = {
   id: string;
@@ -18,6 +19,7 @@ export type Me = {
   full_name: string;
   phone: string | null;
   is_admin: boolean;
+  language: Locale;
   company: Company | null;
 };
 
@@ -31,7 +33,7 @@ export const getMe = cache(async (): Promise<Me | null> => {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "id, email, full_name, phone, is_admin, company:companies(id, name, country, role, trust_level, status)",
+      "id, email, full_name, phone, is_admin, language, company:companies(id, name, country, role, trust_level, status)",
     )
     .eq("id", userId)
     .single();

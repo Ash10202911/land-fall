@@ -153,8 +153,8 @@ export function QuoteForm({
           <p className="text-muted-foreground">Add an amount to see the total.</p>
         ) : (
           <ul>
-            {totals.map((t) => (
-              <li key={t.currency}>{formatMoney(t.minor, t.currency)}</li>
+            {totals.map((tot) => (
+              <li key={tot.currency}>{formatMoney(tot.minor, tot.currency)}</li>
             ))}
           </ul>
         )}

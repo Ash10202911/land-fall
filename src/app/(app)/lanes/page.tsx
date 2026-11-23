@@ -97,9 +97,9 @@ export default async function LanesPage() {
                       {shortName(d.name)}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {(a.modes.length > 0 ? a.modes.map((m) => MODE_TAG[m] ?? m) : ["Every mode"]).map((t) => (
-                        <span key={t} className="rounded-lg border border-border bg-sea-soft px-2 py-1 text-xs font-semibold">
-                          {t}
+                      {(a.modes.length > 0 ? a.modes.map((m) => MODE_TAG[m] ?? m) : ["Every mode"]).map((tag) => (
+                        <span key={tag} className="rounded-lg border border-border bg-sea-soft px-2 py-1 text-xs font-semibold">
+                          {tag}
                         </span>
                       ))}
                       {a.destination_only ? (

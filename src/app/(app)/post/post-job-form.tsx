@@ -159,9 +159,9 @@ export function PostJobForm({
   const air = mode === "Air";
   const closeLabel = CLOSE_OPTIONS.find(([v]) => v === closeIn)?.[1] ?? "48 h";
 
-  const chooseTerm = (t: string) => {
-    setIncoterm(t);
-    setServices(servicesFor(t));
+  const chooseTerm = (term: string) => {
+    setIncoterm(term);
+    setServices(servicesFor(term));
   };
   const toggleLeg = (key: LegKey) => {
     const s = LEG_TO_SERVICE[key];
@@ -250,9 +250,9 @@ export function PostJobForm({
               ×
             </span>
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="Container type">
-              {CONTAINER_TYPES.map((t) => (
-                <Chip key={t} on={ctype === t} onClick={() => setCtype(t)} className="px-2.5">
-                  {t}
+              {CONTAINER_TYPES.map((term) => (
+                <Chip key={term} on={ctype === term} onClick={() => setCtype(term)} className="px-2.5">
+                  {term}
                 </Chip>
               ))}
             </div>
@@ -279,9 +279,9 @@ export function PostJobForm({
 
       <Card title="Incoterm and what forwarders price">
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Incoterm">
-          {QUICK_TERMS.map((t) => (
-            <Chip key={t} on={incoterm === t} onClick={() => chooseTerm(t)}>
-              {t}
+          {QUICK_TERMS.map((term) => (
+            <Chip key={term} on={incoterm === term} onClick={() => chooseTerm(term)}>
+              {term}
             </Chip>
           ))}
           <label className="min-w-28 flex-1">
@@ -291,9 +291,9 @@ export function PostJobForm({
               onChange={(ev) => ev.target.value && chooseTerm(ev.target.value)}
             >
               <option value="">More…</option>
-              {INCOTERMS.filter((t) => !(QUICK_TERMS as readonly string[]).includes(t)).map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {INCOTERMS.filter((term) => !(QUICK_TERMS as readonly string[]).includes(term)).map((term) => (
+                <option key={term} value={term}>
+                  {term}
                 </option>
               ))}
             </Select>

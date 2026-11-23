@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Briefcase, FilePlus2, FileText, Inbox, User, type LucideIcon } from "lucide-react";
+import { useT } from "@/components/i18n-provider";
+import { LanguageToggle } from "@/components/language-toggle";
 import { ModeSwitch } from "@/components/mode-switch";
 import { navItemsFor, type NavIcon, type ViewMode } from "@/lib/mode";
 import { cn } from "@/lib/utils";
@@ -21,8 +23,9 @@ function isActive(pathname: string, href: string) {
 }
 
 function Logo() {
+  const t = useT();
   return (
-    <Link href="/jobs" className="flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight" aria-label="Southbound home">
+    <Link href="/jobs" className="flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight" aria-label={t("Southbound home")}>
       <span
         className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-sm font-extrabold text-primary-foreground shadow-card"
         aria-hidden
@@ -36,11 +39,12 @@ function Logo() {
 
 /** Floating pill tab bar on phones. */
 export function BottomNav({ mode }: { mode: ViewMode }) {
+  const t = useT();
   const pathname = usePathname();
   const items = navItemsFor(mode);
   return (
     <nav
-      aria-label="Main"
+      aria-label={t("Main")}
       className="fixed inset-x-3 bottom-3 z-20 rounded-2xl border border-white/10 bg-primary/95 shadow-[0_12px_32px_-8px_rgb(12_74_110/0.55)] backdrop-blur md:hidden"
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
@@ -59,7 +63,7 @@ export function BottomNav({ mode }: { mode: ViewMode }) {
                 )}
               >
                 <Icon className="h-5 w-5" aria-hidden />
-                {label}
+                {t(label)}
               </Link>
             </li>
           );
@@ -71,6 +75,7 @@ export function BottomNav({ mode }: { mode: ViewMode }) {
 
 /** Sticky frosted top bar with the Requester / Quoter switch on every screen size. */
 export function TopNav({ mode }: { mode: ViewMode }) {
+  const t = useT();
   const pathname = usePathname();
   const items = navItemsFor(mode);
   return (
@@ -78,7 +83,7 @@ export function TopNav({ mode }: { mode: ViewMode }) {
       <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
         <Logo />
         <ModeSwitch mode={mode} />
-        <nav aria-label="Sections" className="hidden md:block">
+        <nav aria-label={t("Sections")} className="hidden md:block">
           <ul className="flex items-center gap-1 rounded-full bg-muted p-1">
             {items.map(({ href, label }) => {
               const active = isActive(pathname, href);
@@ -94,14 +99,14 @@ export function TopNav({ mode }: { mode: ViewMode }) {
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {label}
+                    {t(label)}
                   </Link>
                 </li>
               );
             })}
           </ul>
         </nav>
-        <span className="w-9 md:hidden" aria-hidden />
+        <LanguageToggle />
       </div>
     </header>
   );

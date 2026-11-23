@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useT } from "@/components/i18n-provider";
 
 /** Shown when a page throws on the server or in the browser. Never shows internal details. */
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  const t = useT();
   useEffect(() => {
     // Only the digest is logged: it ties to the server log without exposing personal data.
     console.error("[app] page error", error.digest ?? "no-digest");
@@ -12,10 +14,9 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
 
   return (
     <main id="main" className="mx-auto flex min-h-screen max-w-md flex-col items-start justify-center gap-4 px-4">
-      <h1 className="text-xl font-semibold">Something went wrong</h1>
+      <h1 className="text-xl font-semibold">{t("Something went wrong")}</h1>
       <p className="text-sm text-muted-foreground">
-        We could not load this page. Your data is safe. Try again, and if it keeps happening, come back in a few
-        minutes.
+        {t("We could not load this page. Your data is safe. Try again, and if it keeps happening, come back in a few minutes.")}
       </p>
       {error.digest ? <p className="text-xs text-muted-foreground">Reference: {error.digest}</p> : null}
       <div className="flex gap-2">
@@ -24,10 +25,10 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
           onClick={reset}
           className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
         >
-          Try again
+          {t("Try again")}
         </button>
         <Link href="/jobs" className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium">
-          Go to jobs
+          {t("Go to jobs")}
         </Link>
       </div>
     </main>

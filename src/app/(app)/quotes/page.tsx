@@ -8,6 +8,7 @@ import { flagFor } from "@/lib/geo";
 import { actionsFor, buildActionQueue, buildLaneDemand, buildQuoteScorecard } from "@/lib/dashboard";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { QUOTE_STATUS_LABEL, quoteTotal, type QuoteRow } from "@/lib/quotes";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = { title: "My quotes" };
 
@@ -22,6 +23,7 @@ const first = <T,>(v: T | T[]): T => (Array.isArray(v) ? v[0] : v);
 const shortName = (n: string) => n.replace(/\s*\([^)]*\)\s*$/, "");
 
 export default async function MyQuotesPage() {
+  const t = await getT();
   const me = await requireMember();
   const now = new Date();
   const supabase = await createClient();
@@ -59,9 +61,9 @@ export default async function MyQuotesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-accent">Quoter mode</p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">My quotes</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Quotes your company sent. Each one is sealed: only the requester sees it.</p>
+        <p className="text-sm font-semibold text-accent">{t("Quoter mode")}</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("My quotes")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("Quotes your company sent. Each one is sealed: only the requester sees it.")}</p>
       </div>
 
       <ActionList items={actions} />
@@ -69,10 +71,10 @@ export default async function MyQuotesPage() {
 
       <section aria-labelledby="sent-heading" className="space-y-3">
         <h2 id="sent-heading" className="text-lg font-semibold tracking-tight">
-          Sent quotes
+          {t("Sent quotes")}
         </h2>
         {quotes.length === 0 ? (
-          <EmptyState title="You have not sent any quotes yet" body="Switch to the Job board and send a sealed quote on an open job." />
+          <EmptyState title={t("You have not sent any quotes yet")} body="Switch to the Job board and send a sealed quote on an open job." />
         ) : (
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 [&>li]:min-w-0">
             {quotes.map((q) => {

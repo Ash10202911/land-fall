@@ -11,6 +11,7 @@ import { QUOTE_SELECT, normaliseQuote, type QuoteRow } from "@/lib/quotes";
 import { QuoteLines } from "./my-quote";
 import { AwardButton } from "./award-button";
 import { awardQuote } from "./award-actions";
+import { getT } from "@/lib/i18n/server";
 
 const ERRORS: Record<string, string> = {
   unverified: "Your company needs to be verified before it can award jobs.",
@@ -19,7 +20,7 @@ const ERRORS: Record<string, string> = {
   address: "Enter the delivery street address (3 to 200 characters) to award this job.",
 };
 
-function QuoteCard({
+async function QuoteCard({
   quote,
   job,
   canAward,
@@ -28,6 +29,7 @@ function QuoteCard({
   job: JobRow;
   canAward: boolean;
 }) {
+  const t = await getT();
   const verified = quote.company?.trust_level === "verified";
   const award = awardQuote.bind(null, job.id, quote.id);
   const won = quote.status === "won";
@@ -39,9 +41,9 @@ function QuoteCard({
           <p className="text-xs text-muted-foreground">{quote.company?.country}</p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          {verified ? <Badge tone="verified">Verified</Badge> : <Badge tone="warning">Unverified</Badge>}
-          {won ? <Badge tone="success">Won</Badge> : null}
-          {quote.status === "lost" ? <Badge tone="danger">Lost</Badge> : null}
+          {verified ? <Badge tone="verified">{t("Verified")}</Badge> : <Badge tone="warning">{t("Unverified")}</Badge>}
+          {won ? <Badge tone="success">{t("Won")}</Badge> : null}
+          {quote.status === "lost" ? <Badge tone="danger">{t("Lost")}</Badge> : null}
         </div>
       </div>
       <div>
@@ -51,7 +53,7 @@ function QuoteCard({
       <details className="group">
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1 text-sm font-medium text-accent">
           <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden />
-          Show line items
+          {t("Show line items")}
         </summary>
         <div className="pt-2">
           <QuoteLines quote={quote} />
@@ -80,6 +82,7 @@ export async function RequesterSection({
   company: Company;
   awardError?: string;
 }) {
+  const t = await getT();
   const supabase = await createClient();
   const { data } = await supabase
     .from("quotes")
@@ -106,7 +109,7 @@ export async function RequesterSection({
             className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium"
           >
             <Pencil className="h-4 w-4" aria-hidden />
-            Edit job
+            {t("Edit job")}
           </Link>
           <CancelJobButton action={cancelJob.bind(null, job.id)} />
         </div>
@@ -120,13 +123,13 @@ export async function RequesterSection({
 
       {open && !verifiedActive ? (
         <div className="rounded-xl bg-muted p-3 text-sm">
-          <p className="font-medium">Get verified to award</p>
+          <p className="font-medium">{t("Get verified to award")}</p>
           <p className="text-muted-foreground">
             {company.status === "suspended"
               ? "Your company is suspended."
               : "You can compare quotes now. An admin must verify your company before you can award."}{" "}
             <Link href="/profile" className="text-accent underline">
-              View your profile
+              {t("View your profile")}
             </Link>
           </p>
         </div>
@@ -134,7 +137,7 @@ export async function RequesterSection({
 
       {quotes.length === 0 ? (
         <EmptyState
-          title="No quotes yet"
+          title={t("No quotes yet")}
           body={closedForQuotes ? "The deadline has passed with no quotes." : "Forwarders have until the deadline to send sealed quotes."}
         />
       ) : (

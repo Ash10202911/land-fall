@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Box, Bug, Flame, MapPin, Repeat, Snowflake } from "lucide-react";
 import { Badge } from "@/components/ui/card";
@@ -7,10 +9,12 @@ import { LAND_PATH, flagFor, routeGeometry } from "@/lib/geo";
 import { cargoSummary, portLabel, type JobRow } from "@/lib/jobs";
 import { REPEAT_LABELS, UNLOAD_LABELS, scopeFor } from "@/lib/scope";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n-provider";
 
 export type Band = "none" | "few" | "busy";
 
 export function JobFlags({ job }: { job: Pick<JobRow, "flag_dg" | "flag_reefer" | "flag_bmsb"> }) {
+  const t = useT();
   if (!job.flag_dg && !job.flag_reefer && !job.flag_bmsb) return null;
   const chip = "inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold";
   return (
@@ -18,19 +22,19 @@ export function JobFlags({ job }: { job: Pick<JobRow, "flag_dg" | "flag_reefer" 
       {job.flag_dg ? (
         <span className={cn(chip, "bg-red-100 text-red-800")}>
           <Flame className="h-3.5 w-3.5" aria-hidden />
-          Dangerous goods
+          {t("Dangerous goods")}
         </span>
       ) : null}
       {job.flag_reefer ? (
         <span className={cn(chip, "bg-indigo-100 text-indigo-900")}>
           <Snowflake className="h-3.5 w-3.5" aria-hidden />
-          Reefer
+          {t("Reefer")}
         </span>
       ) : null}
       {job.flag_bmsb ? (
         <span className={cn(chip, "bg-amber-100 text-amber-900")}>
           <Bug className="h-3.5 w-3.5" aria-hidden />
-          BMSB risk
+          {t("BMSB risk")}
         </span>
       ) : null}
     </div>
@@ -49,6 +53,7 @@ function leftLabel(h: number) {
 
 /** Circular countdown to the quote deadline; red under 24 hours. */
 function CountdownRing({ job, now }: { job: JobRow; now: Date }) {
+  const t = useT();
   const left = hoursLeft(job.deadline_at, now);
   const total = Math.max(1, (new Date(job.deadline_at).getTime() - new Date(job.created_at).getTime()) / 3_600_000);
   const circ = 2 * Math.PI * 21;
@@ -77,7 +82,7 @@ function CountdownRing({ job, now }: { job: JobRow; now: Date }) {
       </svg>
       <span className="relative flex flex-col items-center leading-none">
         <span className={cn("text-sm font-extrabold", urgent ? "text-red-700" : "text-foreground")}>{leftLabel(left)}</span>
-        <span className="mt-0.5 text-[9px] font-semibold text-muted-foreground">to quote</span>
+        <span className="mt-0.5 text-[9px] font-semibold text-muted-foreground">{t("to quote")}</span>
       </span>
     </div>
   );
@@ -247,6 +252,7 @@ export function JobCard({
   band?: Band;
   quoteCount?: number;
 }) {
+  const t = useT();
   const air = job.mode === "Air";
   const closed = isJobClosed(job, now);
   const scope = scopeFor(job.incoterm, job.services);
@@ -272,7 +278,7 @@ export function JobCard({
             )}
           >
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground motion-reduce:animate-none" aria-hidden />
-            NEW
+            {t("NEW")}
           </span>
         ) : null}
         {status ? (
@@ -309,7 +315,7 @@ export function JobCard({
           <div className="flex items-start gap-2.5 rounded-2xl border border-border bg-background/60 p-3">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Deliver to</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Deliver to")}</p>
               <p className="truncate text-sm font-bold">
                 {job.delivery_suburb} {job.delivery_postcode}
               </p>
@@ -332,11 +338,11 @@ export function JobCard({
 
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-xl border border-border bg-background/60 px-3 py-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Ready</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Ready")}</p>
             <p className="mt-1 font-bold">{formatDate(job.ready_date)}</p>
           </div>
           <div className="rounded-xl border border-border bg-background/60 px-3 py-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Needed by</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("Needed by")}</p>
             <p className="mt-1 font-bold">{job.required_by ? formatDate(job.required_by) : "Flexible"}</p>
           </div>
         </div>
@@ -365,7 +371,7 @@ export function JobCard({
         {!mine ? (
           <p className="-mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
             {job.company?.trust_level === "verified" ? (
-              <BadgeCheck className="h-3.5 w-3.5 text-success" aria-label="Verified" />
+              <BadgeCheck className="h-3.5 w-3.5 text-success" aria-label={t("Verified")} />
             ) : null}
             <span className="truncate">{job.company?.name ?? "Unknown company"}</span>
           </p>

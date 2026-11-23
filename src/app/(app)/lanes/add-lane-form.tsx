@@ -8,6 +8,7 @@ import { MODES } from "@/lib/domain";
 import { ALERT_FREQUENCIES, FREQUENCY_LABELS } from "@/lib/lane-alerts";
 import type { FormState } from "@/lib/validation/auth";
 import { addLaneAlert } from "./actions";
+import { useT } from "@/components/i18n-provider";
 
 export type PortOption = { id: number; code: string; name: string; country: string };
 
@@ -16,6 +17,7 @@ const ANZ = ["Australia", "New Zealand"];
 
 /** Add a lane: where from, where to, which modes, and how often to be emailed. */
 export function AddLaneForm({ ports }: { ports: PortOption[] }) {
+  const t = useT();
   const [state, action, pending] = useActionState<FormState, FormData>(addLaneAlert, {});
   const formRef = useRef<HTMLFormElement>(null);
   const detailsRef = useRef<HTMLDetailsElement>(null);
@@ -36,7 +38,7 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
     <details ref={detailsRef} className="group rounded-2xl border border-dashed border-input bg-card/60 p-4">
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-bold text-accent">
         <Plus className="h-4 w-4" aria-hidden />
-        Add a lane
+        {t("Add a lane")}
       </summary>
       <form
         ref={formRef}
@@ -49,10 +51,10 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
         }}
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="From" htmlFor="origin" error={e.origin}>
+          <Field label={t("From")} htmlFor="origin" error={e.origin}>
             <Select id="origin" name="origin" defaultValue="any" aria-invalid={Boolean(e.origin)}>
-              <option value="any">Anywhere</option>
-              <optgroup label="A whole country">
+              <option value="any">{t("Anywhere")}</option>
+              <optgroup label={t("A whole country")}>
                 {countries.map((c) => (
                   <option key={c} value={`country:${c}`}>
                     {c} (any port)
@@ -72,10 +74,10 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
               ))}
             </Select>
           </Field>
-          <Field label="To" htmlFor="destinationPortId" error={e.destinationPortId}>
+          <Field label={t("To")} htmlFor="destinationPortId" error={e.destinationPortId}>
             <Select id="destinationPortId" name="destinationPortId" defaultValue="" aria-invalid={Boolean(e.destinationPortId)}>
               <option value="" disabled>
-                Choose a port
+                {t("Choose a port")}
               </option>
               {[...ANZ, ...byCountry(ports).filter((c) => !ANZ.includes(c))].map((c) => (
                 <optgroup key={c} label={c}>
@@ -93,7 +95,7 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
         </div>
 
         <fieldset>
-          <legend className="mb-1.5 text-sm font-semibold">Modes (none ticked means every mode)</legend>
+          <legend className="mb-1.5 text-sm font-semibold">{t("Modes (none ticked means every mode)")}</legend>
           <div className="flex flex-wrap gap-2">
             {MODES.map((m) => (
               <label key={m} className="relative inline-flex min-h-11 cursor-pointer items-center">
@@ -108,10 +110,10 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
 
         <label className="flex min-h-11 items-center gap-3 text-sm font-semibold">
           <input type="checkbox" name="destinationOnly" className="h-5 w-5 accent-[var(--sea)]" />
-          Only jobs where I price the destination side only (CIF, CFR and similar)
+          {t("Only jobs where I price the destination side only (CIF, CFR and similar)")}
         </label>
 
-        <Field label="Email me" htmlFor="frequency" error={e.frequency}>
+        <Field label={t("Email me")} htmlFor="frequency" error={e.frequency}>
           <Select id="frequency" name="frequency" defaultValue="instant">
             {ALERT_FREQUENCIES.filter((f) => f !== "off").map((f) => (
               <option key={f} value={f}>
@@ -127,7 +129,7 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
           </p>
         ) : null}
         <Button type="submit" variant="accent" disabled={pending}>
-          {pending ? "Saving…" : "Save lane"}
+          {pending ? t("Saving…") : t("Save lane")}
         </Button>
       </form>
       <p className="mt-3 text-xs text-muted-foreground">

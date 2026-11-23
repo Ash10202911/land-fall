@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/form";
 import { requestMagicLink } from "./actions";
 import type { FormState } from "@/lib/validation/auth";
+import { useT } from "@/components/i18n-provider";
 
 export function SignInForm() {
+  const t = useT();
   const [state, action, pending] = useActionState<FormState, FormData>(requestMagicLink, {});
 
   if (state.ok) {
@@ -15,7 +17,7 @@ export function SignInForm() {
       <div role="status" className="rounded-xl bg-accent-soft p-4 text-sm">
         <p className="font-medium">{state.message}</p>
         <p className="mt-1 text-muted-foreground">
-          The link works once and expires soon. You can close this page.
+          {t("The link works once and expires soon. You can close this page.")}
         </p>
       </div>
     );
@@ -23,14 +25,14 @@ export function SignInForm() {
 
   return (
     <form action={action} className="space-y-4" noValidate>
-      <Field label="Email address" htmlFor="email" error={state.errors?.email}>
+      <Field label={t("Email address")} htmlFor="email" error={state.errors?.email}>
         <Input
           id="email"
           name="email"
           type="email"
           inputMode="email"
           autoComplete="email"
-          placeholder="you@company.com"
+          placeholder={t("you@company.com")}
           aria-invalid={Boolean(state.errors?.email)}
           aria-describedby={state.errors?.email ? "email-error" : undefined}
           required

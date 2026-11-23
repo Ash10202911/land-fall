@@ -7,9 +7,11 @@ import { CURRENCIES } from "@/lib/domain";
 import type { FormState } from "@/lib/validation/auth";
 import { uploadRateCard } from "../../actions";
 import type { PortOption } from "../../add-lane-form";
+import { useT } from "@/components/i18n-provider";
 
 /** Upload a rate card from a spreadsheet saved as CSV. A single mistake rejects the file, with row numbers. */
 export function UploadForm({ ports, defaultCurrency, minDate, defaultValidTo }: { ports: PortOption[]; defaultCurrency: string; minDate: string; defaultValidTo: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState<FormState, FormData>(uploadRateCard, {});
   const e = state.errors ?? {};
   const countries = [...new Set(ports.map((p) => p.country))];
@@ -28,13 +30,13 @@ export function UploadForm({ ports, defaultCurrency, minDate, defaultValidTo }: 
       }}
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Name" htmlFor="name" error={e.name}>
-          <Input id="name" name="name" placeholder="Port Botany destination charges" aria-invalid={Boolean(e.name)} />
+        <Field label={t("Name")} htmlFor="name" error={e.name}>
+          <Input id="name" name="name" placeholder={t("Port Botany destination charges")} aria-invalid={Boolean(e.name)} />
         </Field>
-        <Field label="Destination port" htmlFor="destinationPortId" error={e.destinationPortId}>
+        <Field label={t("Destination port")} htmlFor="destinationPortId" error={e.destinationPortId}>
           <Select id="destinationPortId" name="destinationPortId" defaultValue="" aria-invalid={Boolean(e.destinationPortId)}>
             <option value="" disabled>
-              Choose a port
+              {t("Choose a port")}
             </option>
             {countries.map((c) => (
               <optgroup key={c} label={c}>
@@ -47,7 +49,7 @@ export function UploadForm({ ports, defaultCurrency, minDate, defaultValidTo }: 
             ))}
           </Select>
         </Field>
-        <Field label="Currency" htmlFor="currency" error={e.currency}>
+        <Field label={t("Currency")} htmlFor="currency" error={e.currency}>
           <Select id="currency" name="currency" defaultValue={defaultCurrency}>
             {CURRENCIES.map((c) => (
               <option key={c} value={c}>
@@ -56,14 +58,14 @@ export function UploadForm({ ports, defaultCurrency, minDate, defaultValidTo }: 
             ))}
           </Select>
         </Field>
-        <Field label="Prices valid to" htmlFor="validTo" error={e.validTo}>
+        <Field label={t("Prices valid to")} htmlFor="validTo" error={e.validTo}>
           <Input id="validTo" name="validTo" type="date" min={minDate} defaultValue={defaultValidTo} aria-invalid={Boolean(e.validTo)} />
         </Field>
       </div>
 
       <div className="space-y-1">
         <label htmlFor="file" className="mb-1.5 block text-sm font-semibold">
-          Spreadsheet (CSV)
+          {t("Spreadsheet (CSV)")}
         </label>
         <input
           id="file"

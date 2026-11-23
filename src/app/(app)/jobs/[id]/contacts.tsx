@@ -2,6 +2,7 @@ import { Mail, MapPin, Phone, ShieldAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { BANK_WARNING } from "@/lib/domain";
+import { getT } from "@/lib/i18n/server";
 
 // The database function returns 'poster' for the requester; the interface calls them the Requester.
 type Contact = { party: "poster" | "winner"; company_name: string; full_name: string; email: string; phone: string | null };
@@ -11,6 +12,7 @@ type Contact = { party: "poster" | "winner"; company_name: string; full_name: st
  * returns them only to the requester and the winner (SEC-2), so this renders nothing for anyone else.
  */
 export async function AwardContacts({ jobId, suburb }: { jobId: string; suburb?: string | null }) {
+  const t = await getT();
   const supabase = await createClient();
   const [{ data }, { data: address }] = await Promise.all([
     supabase.rpc("get_award_contacts", { p_job_id: jobId }),
@@ -22,7 +24,7 @@ export async function AwardContacts({ jobId, suburb }: { jobId: string; suburb?:
   return (
     <section aria-labelledby="contacts-heading" className="space-y-3">
       <h2 id="contacts-heading" className="font-semibold">
-        Contact details
+        {t("Contact details")}
       </h2>
       <div
         role="note"
@@ -35,7 +37,7 @@ export async function AwardContacts({ jobId, suburb }: { jobId: string; suburb?:
         <Card className="flex items-start gap-3">
           <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Delivery address</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("Delivery address")}</p>
             <p className="font-semibold">
               {address.street}
               {suburb ? `, ${suburb}` : ""}
@@ -46,7 +48,7 @@ export async function AwardContacts({ jobId, suburb }: { jobId: string; suburb?:
       {contacts.map((c) => (
         <Card key={c.party} className="space-y-1">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {c.party === "poster" ? "Requester" : "Winning forwarder"}
+            {c.party === "poster" ? t("Requester") : t("Winning forwarder")}
           </p>
           <p className="font-semibold">{c.company_name}</p>
           <p className="text-sm">{c.full_name}</p>
@@ -63,7 +65,7 @@ export async function AwardContacts({ jobId, suburb }: { jobId: string; suburb?:
                 {c.phone}
               </a>
             ) : (
-              <span className="text-muted-foreground">No phone number provided</span>
+              <span className="text-muted-foreground">{t("No phone number provided")}</span>
             )}
           </p>
         </Card>

@@ -3,10 +3,12 @@ import { Copy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
 import { PostJobForm, type JobDefaults } from "./post-job-form";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = { title: "Request a quote" };
 
 export default async function PostPage({ searchParams }: { searchParams: Promise<{ repeat?: string }> }) {
+  const t = await getT();
   const me = await requireMember();
   const { repeat } = await searchParams;
   const supabase = await createClient();
@@ -68,15 +70,15 @@ export default async function PostPage({ searchParams }: { searchParams: Promise
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4">
       <div>
-        <p className="text-sm font-semibold text-accent">Requester mode</p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Request a quote</h1>
+        <p className="text-sm font-semibold text-accent">{t("Requester mode")}</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("Request a quote")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          About 30 seconds. Verified forwarders see it on their board and send sealed quotes only you can read.
+          {t("About 30 seconds. Verified forwarders see it on their board and send sealed quotes only you can read.")}
         </p>
       </div>
       {me.company.status === "suspended" ? (
         <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
-          Your company is suspended and cannot request quotes.
+          {t("Your company is suspended and cannot request quotes.")}
         </p>
       ) : (
         <>
@@ -86,12 +88,12 @@ export default async function PostPage({ searchParams }: { searchParams: Promise
               className="flex min-h-14 items-center gap-3 rounded-2xl border border-border bg-card px-4 text-sm font-semibold shadow-card"
             >
               <Copy className="h-5 w-5 text-sea" aria-hidden />
-              Repeat last job
+              {t("Repeat last job")}
             </Link>
           ) : null}
           {defaults ? (
             <p role="status" className="rounded-xl bg-sea-soft p-3 text-sm text-sea-ink">
-              Filled in from your last job. Set a new ready date before posting.
+              {t("Filled in from your last job. Set a new ready date before posting.")}
             </p>
           ) : null}
           <PostJobForm key={defaults ? "repeat" : "new"} ports={ports ?? []} defaults={defaults} companies={companies} />

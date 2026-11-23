@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { deleteRateCard } from "../../actions";
 import type { PortOption } from "../../add-lane-form";
 import { RateCardForm, type CardDraft, type RowDraft } from "../rate-card-form";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = { title: "Rate card" };
 
@@ -17,6 +18,7 @@ function inDays(n: number) {
 }
 
 export default async function RateCardPage({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getT();
   const { id } = await params;
   const isNew = id === "new";
   if (!isNew && !UUID.test(id)) notFound();
@@ -64,7 +66,7 @@ export default async function RateCardPage({ params }: { params: Promise<{ id: s
     <div className="mx-auto w-full max-w-4xl space-y-5">
       <Link href="/lanes" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" aria-hidden />
-        My lanes
+        {t("My lanes")}
       </Link>
       <div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{isNew ? "New rate card" : "Edit rate card"}</h1>

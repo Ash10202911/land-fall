@@ -9,6 +9,7 @@ import type { JobRow } from "@/lib/jobs";
 import { QUOTE_SELECT, normaliseQuote } from "@/lib/quotes";
 import { MyQuote } from "./my-quote";
 import { QuoteForm, type LineDraft } from "./quote-form";
+import { getT } from "@/lib/i18n/server";
 
 function addDays(days: number) {
   const d = new Date();
@@ -26,6 +27,7 @@ export async function QuoterSection({
   me: Me & { company: Company };
   edit: boolean;
 }) {
+  const t = await getT();
   const supabase = await createClient();
   const { data } = await supabase
     .from("quotes")
@@ -57,7 +59,7 @@ export async function QuoterSection({
     return (
       <Card>
         <p role="alert" className="text-sm text-destructive">
-          Your company is suspended and cannot send quotes.
+          {t("Your company is suspended and cannot send quotes.")}
         </p>
       </Card>
     );
@@ -126,7 +128,7 @@ export async function QuoterSection({
           </p>
           {me.company.trust_level !== "verified" ? (
             <p className="text-xs text-muted-foreground">
-              Your company is unverified, so your quote will carry an “Unverified” label.
+              {t("Your company is unverified, so your quote will carry an “Unverified” label.")}
             </p>
           ) : null}
         </>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/form";
 import type { FormState } from "@/lib/validation/auth";
 import { updateJob } from "../job-actions";
+import { useT } from "@/components/i18n-provider";
 
 export function EditJobForm({
   jobId,
@@ -17,6 +18,7 @@ export function EditJobForm({
   defaults: { cargoDescription: string; readyDate: string; deadlineDate: string; deadlineTime: string; notes: string };
   cargoLocked: boolean;
 }) {
+  const t = useT();
   const bound = updateJob.bind(null, jobId, currentDeadline);
   const [state, action, pending] = useActionState<FormState, FormData>(bound, {});
   const e = state.errors ?? {};
@@ -33,11 +35,10 @@ export function EditJobForm({
     >
       {cargoLocked ? (
         <p className="rounded-md bg-muted p-3 text-sm">
-          Quotes have been sent, so the cargo description and ready date are locked to keep quoting fair. You can still
-          edit the notes and extend the deadline.
+          {t("Quotes have been sent, so the cargo description and ready date are locked to keep quoting fair. You can still edit the notes and extend the deadline.")}
         </p>
       ) : null}
-      <Field label="Cargo description" htmlFor="cargoDescription" error={e.cargoDescription}>
+      <Field label={t("Cargo description")} htmlFor="cargoDescription" error={e.cargoDescription}>
         <Textarea
           id="cargoDescription"
           name="cargoDescription"
@@ -46,7 +47,7 @@ export function EditJobForm({
           aria-invalid={Boolean(e.cargoDescription)}
         />
       </Field>
-      <Field label="Cargo ready date" htmlFor="readyDate" error={e.readyDate}>
+      <Field label={t("Cargo ready date")} htmlFor="readyDate" error={e.readyDate}>
         <Input
           id="readyDate"
           name="readyDate"
@@ -57,7 +58,7 @@ export function EditJobForm({
         />
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Quote deadline date" htmlFor="deadlineDate" error={e.deadlineDate} hint="Can only be extended">
+        <Field label={t("Quote deadline date")} htmlFor="deadlineDate" error={e.deadlineDate} hint={t("Can only be extended")}>
           <Input
             id="deadlineDate"
             name="deadlineDate"
@@ -67,7 +68,7 @@ export function EditJobForm({
             aria-invalid={Boolean(e.deadlineDate)}
           />
         </Field>
-        <Field label="Time (UTC)" htmlFor="deadlineTime" error={e.deadlineTime}>
+        <Field label={t("Time (UTC)")} htmlFor="deadlineTime" error={e.deadlineTime}>
           <Input
             id="deadlineTime"
             name="deadlineTime"
@@ -77,7 +78,7 @@ export function EditJobForm({
           />
         </Field>
       </div>
-      <Field label="Notes (optional)" htmlFor="notes" error={e.notes}>
+      <Field label={t("Notes (optional)")} htmlFor="notes" error={e.notes}>
         <Textarea id="notes" name="notes" defaultValue={defaults.notes} aria-invalid={Boolean(e.notes)} />
       </Field>
       {state.message ? (

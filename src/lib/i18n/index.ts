@@ -42,6 +42,13 @@ export function interpolate(template: string, params?: Params): string {
   return template.replace(/\{(\w+)\}/g, (whole, key: string) => (key in params ? String(params[key]) : whole));
 }
 
+/**
+ * Marks a piece of text in a constant (a label table, a validation message) as translatable. It returns
+ * the text unchanged; the screen translates it where it is shown, with t(label). The coverage test finds
+ * these marks, so every one must have a Chinese entry.
+ */
+export const msg = (text: string): string => text;
+
 export type Translator = {
   (text: string, params?: Params): string;
   /** Picks the singular for exactly 1 in English. {n} is the count. Chinese has one form. */

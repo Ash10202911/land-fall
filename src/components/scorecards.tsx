@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, TrendingDown, TrendingUp } from "lucide-react";
 import { Badge, Card, EmptyState } from "@/components/ui/card";
@@ -12,6 +14,7 @@ import {
   type MarketplaceStats,
   type QuoteScorecard,
 } from "@/lib/dashboard";
+import { useT } from "@/components/i18n-provider";
 
 const toneLabel: Record<ActionTone, string> = {
   danger: "Blocked",
@@ -74,9 +77,10 @@ function Bar({ label, value, max, text }: { label: string; value: number; max: n
 
 /** "Needs attention": the next things that move a job or a quote forward. Hidden when empty. */
 export function ActionList({ items }: { items: ActionItem[] }) {
+  const t = useT();
   if (items.length === 0) return null;
   return (
-    <Section id="attention-heading" title="Needs attention">
+    <Section id="attention-heading" title={t("Needs attention")}>
       <ul className="grid gap-2 lg:grid-cols-2" data-testid="action-queue">
         {items.map((a) => (
           <li key={a.id}>
@@ -101,22 +105,23 @@ export function ActionList({ items }: { items: ActionItem[] }) {
 
 /** Requester side: how my jobs attract quotes and turn into awards. */
 export function JobScorecardView({ s }: { s: JobScorecard }) {
+  const t = useT();
   if (s.posted === 0) return null;
   return (
-    <Section id="posting-heading" title="How your requests are doing" note={`Last ${s.days} days.`}>
+    <Section id="posting-heading" title={t("How your requests are doing")} note={`Last ${s.days} days.`}>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="job-scorecard">
-        <Stat label="Jobs posted" value={String(s.posted)} hint={`${s.open} open, ${s.awarded} awarded, ${s.cancelled} cancelled`} />
+        <Stat label={t("Jobs posted")} value={String(s.posted)} hint={`${s.open} open, ${s.awarded} awarded, ${s.cancelled} cancelled`} />
         <Stat
-          label="Award rate"
+          label={t("Award rate")}
           value={rate(s.awardRate)}
           hint={s.expired > 0 ? `${s.expired} closed without an award` : "Of jobs that have closed"}
         />
         <Stat
-          label="Quotes per job"
+          label={t("Quotes per job")}
           value={s.avgQuotesPerJob === null ? "None yet" : String(s.avgQuotesPerJob)}
           hint={s.noQuoteRate === null ? undefined : `${s.noQuoteRate}% of closed jobs got none`}
         />
-        <Stat label="Time to first quote" value={formatHours(s.medianHoursToFirstQuote)} hint="Median" />
+        <Stat label={t("Time to first quote")} value={formatHours(s.medianHoursToFirstQuote)} hint={t("Median")} />
       </div>
       {s.avgPriceSpreadPct !== null ? (
         <p className="text-sm text-muted-foreground">
@@ -131,11 +136,12 @@ export function JobScorecardView({ s }: { s: JobScorecard }) {
 
 /** Quoter side: win rate gauge, funnel and win rate by mode. */
 export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
+  const t = useT();
   if (s.sent === 0) return null;
   const win = s.winRate ?? 0;
   const arc = Math.PI * 62;
   return (
-    <Section id="quoting-heading" title="How your quotes are doing" note={`Last ${s.days} days.`}>
+    <Section id="quoting-heading" title={t("How your quotes are doing")} note={`Last ${s.days} days.`}>
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <Card className="flex items-center gap-4 p-4 sm:p-4" data-testid="quote-scorecard">
           <div
@@ -156,20 +162,20 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
             </svg>
             <span className="absolute inset-x-0 bottom-0 text-center">
               <span className="block text-2xl font-bold">{rate(s.winRate)}</span>
-              <span className="text-xs text-muted-foreground">win rate</span>
+              <span className="text-xs text-muted-foreground">{t("win rate")}</span>
             </span>
           </div>
           <ul className="min-w-0 flex-1 space-y-1.5 text-sm">
-            <li className="flex justify-between gap-2"><span>Sent</span><strong>{s.sent}</strong></li>
-            <li className="flex justify-between gap-2"><span>Still open</span><strong>{s.open}</strong></li>
-            <li className="flex justify-between gap-2"><span>Won / lost</span><strong>{s.won} / {s.lost}</strong></li>
-            <li className="flex justify-between gap-2"><span>Your median reply</span><strong>{formatHours(s.medianHoursToQuote)}</strong></li>
+            <li className="flex justify-between gap-2"><span>{t("Sent")}</span><strong>{s.sent}</strong></li>
+            <li className="flex justify-between gap-2"><span>{t("Still open")}</span><strong>{s.open}</strong></li>
+            <li className="flex justify-between gap-2"><span>{t("Won / lost")}</span><strong>{s.won} / {s.lost}</strong></li>
+            <li className="flex justify-between gap-2"><span>{t("Your median reply")}</span><strong>{formatHours(s.medianHoursToQuote)}</strong></li>
           </ul>
         </Card>
         <Card className="space-y-3 p-4 sm:p-4">
-          <h3 className="text-sm font-semibold">Win rate by mode</h3>
+          <h3 className="text-sm font-semibold">{t("Win rate by mode")}</h3>
           {s.byMode.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nothing decided yet.</p>
+            <p className="text-sm text-muted-foreground">{t("Nothing decided yet.")}</p>
           ) : (
             <ul className="space-y-3">
               {s.byMode.map((m) => (
@@ -179,7 +185,7 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
           )}
           {s.wonValue.length > 0 ? (
             <p className="text-sm">
-              <span className="font-medium">Value won: </span>
+              <span className="font-medium">{t("Value won:")} </span>
               {s.wonValue.map((v) => formatMoney(v.minor, v.currency)).join(" + ")}
             </p>
           ) : null}
@@ -191,12 +197,13 @@ export function QuoteScorecardView({ s }: { s: QuoteScorecard }) {
 
 /** Busiest lanes on the public board (jobs are public, so no sealed data is involved). */
 export function LaneDemandView({ d }: { d: LaneDemand }) {
+  const t = useT();
   if (d.lanes.length === 0) return null;
   const maxLane = Math.max(0, ...d.lanes.map((l) => l.jobs));
   return (
     <Section
       id="demand-heading"
-      title="Where the demand is"
+      title={t("Where the demand is")}
       note={`Jobs posted in the last ${d.days} days, compared with the ${d.days} days before.`}
     >
       <Card className="space-y-4 p-4 sm:p-4" data-testid="lane-demand">
@@ -248,8 +255,9 @@ type QueueRow = {
 
 /** Admin only: counts and timings for the whole marketplace, plus who is stuck waiting on verification. */
 export function MarketplaceHealth({ stats, queue }: { stats: MarketplaceStats | null; queue: QueueRow[] }) {
+  const t = useT();
   return (
-    <Section id="health-heading" title="Marketplace health" note="Last 30 days. Counts and timings only: admins never see quote amounts.">
+    <Section id="health-heading" title={t("Marketplace health")} note="Last 30 days. Counts and timings only: admins never see quote amounts.">
       {stats ? (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="marketplace-kpis">
@@ -258,12 +266,12 @@ export function MarketplaceHealth({ stats, queue }: { stats: MarketplaceStats | 
             ))}
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold">Verification queue</h3>
+            <h3 className="font-semibold">{t("Verification queue")}</h3>
             <p className="text-sm text-muted-foreground">
-              Basic companies with quotes waiting on their jobs. They cannot award until verified.
+              {t("Basic companies with quotes waiting on their jobs. They cannot award until verified.")}
             </p>
             {queue.length === 0 ? (
-              <EmptyState title="No one is waiting to be verified" />
+              <EmptyState title={t("No one is waiting to be verified")} />
             ) : (
               <ul className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
                 {queue.map((c) => (
@@ -291,7 +299,7 @@ export function MarketplaceHealth({ stats, queue }: { stats: MarketplaceStats | 
         </>
       ) : (
         <p role="alert" className="rounded-lg border border-border bg-muted p-3 text-sm">
-          Marketplace figures are not available. The latest database migration may not be applied yet.
+          {t("Marketplace figures are not available. The latest database migration may not be applied yet.")}
         </p>
       )}
     </Section>

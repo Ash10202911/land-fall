@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Lock, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/form";
+import { useT } from "@/components/i18n-provider";
 
 /**
  * Two-step award: awarding cannot be undone, so ask once before submitting. When the job asks for
@@ -20,6 +21,7 @@ export function AwardButton({
   needsAddress: boolean;
   suburb?: string;
 }) {
+  const t = useT();
   const [confirming, setConfirming] = useState(false);
 
   if (!confirming) {
@@ -38,7 +40,7 @@ export function AwardButton({
       </p>
       {needsAddress ? (
         <div className="space-y-1">
-          <Field label="Delivery street address" htmlFor="street" hint={suburb ? `In ${suburb}, from your request.` : undefined}>
+          <Field label={t("Delivery street address")} htmlFor="street" hint={suburb ? `In ${suburb}, from your request.` : undefined}>
             <Input id="street" name="street" required minLength={3} maxLength={200} autoComplete="street-address" />
           </Field>
           <p className="flex items-start gap-2 text-xs text-muted-foreground">
@@ -50,10 +52,10 @@ export function AwardButton({
       ) : null}
       <div className="flex gap-2">
         <Button type="submit" variant="accent" className="flex-1">
-          Confirm award
+          {t("Confirm award")}
         </Button>
         <Button type="button" variant="outline" onClick={() => setConfirming(false)}>
-          Cancel
+          {t("Cancel")}
         </Button>
       </div>
     </form>

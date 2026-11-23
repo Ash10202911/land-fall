@@ -1,6 +1,9 @@
+"use client";
+
 import { Anchor, FileCheck2, MapPin, Plane, Ship, Truck, type LucideIcon } from "lucide-react";
 import type { Leg, LegKey } from "@/lib/scope";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n-provider";
 
 const ICON: Record<LegKey, LucideIcon> = {
   pickup: Truck,
@@ -25,8 +28,9 @@ export function ScopeStrip({
   onToggle?: (key: LegKey) => void;
   compact?: boolean;
 }) {
+  const t = useT();
   return (
-    <ul className="grid grid-cols-5 gap-1.5" aria-label="What the forwarder prices">
+    <ul className="grid grid-cols-5 gap-1.5" aria-label={t("What the forwarder prices")}>
       {legs.map((leg) => {
         const Icon = leg.key === "freight" && air ? Plane : ICON[leg.key];
         const fixed = leg.key === "pickup" || leg.key === "freight";

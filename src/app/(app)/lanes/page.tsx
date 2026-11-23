@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { AddLaneForm, type PortOption } from "./add-lane-form";
 import { deleteLaneAlert, setLaneFrequency } from "./actions";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = { title: "My lanes" };
 
@@ -36,6 +37,7 @@ const shortName = (n: string) => n.replace(/\s*\([^)]*\)\s*$/, "");
 const MODE_TAG: Record<string, string> = { FCL: "Sea FCL", LCL: "Sea LCL", Air: "Air" };
 
 export default async function LanesPage() {
+  const t = await getT();
   const me = await requireMember();
   const supabase = await createClient();
   const [{ data: alertRows }, { data: cardRows }, { data: ports }] = await Promise.all([
@@ -63,19 +65,19 @@ export default async function LanesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-sm font-semibold text-accent">Quoter mode</p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">My lanes</h1>
+        <p className="text-sm font-semibold text-accent">{t("Quoter mode")}</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("My lanes")}</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Get an email the moment a matching job is posted. Add a rate card and the quote is filled in for you.
+          {t("Get an email the moment a matching job is posted. Add a rate card and the quote is filled in for you.")}
         </p>
       </div>
 
       <section aria-labelledby="alerts-heading" className="space-y-3">
         <h2 id="alerts-heading" className="text-lg font-semibold tracking-tight">
-          Lane alerts
+          {t("Lane alerts")}
         </h2>
         {alerts.length === 0 ? (
-          <EmptyState title="No lane alerts yet" body="Add a lane such as China to Sydney and we will email you when a matching job is posted." />
+          <EmptyState title={t("No lane alerts yet")} body="Add a lane such as China to Sydney and we will email you when a matching job is posted." />
         ) : (
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
             {alerts.map((a) => {
@@ -92,7 +94,7 @@ export default async function LanesPage() {
                       <span className="text-sea" aria-hidden>
                         →
                       </span>
-                      <span className="sr-only">to</span>
+                      <span className="sr-only">{t("to")}</span>
                       <span aria-hidden>{flagFor(d.country)}</span>
                       {shortName(d.name)}
                     </p>
@@ -103,12 +105,12 @@ export default async function LanesPage() {
                         </span>
                       ))}
                       {a.destination_only ? (
-                        <span className="rounded-lg border border-border bg-sea-soft px-2 py-1 text-xs font-semibold">Destination only</span>
+                        <span className="rounded-lg border border-border bg-sea-soft px-2 py-1 text-xs font-semibold">{t("Destination only")}</span>
                       ) : null}
                     </div>
                     <div>
                       <p id={`freq-${a.id}`} className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                        Email me
+                        {t("Email me")}
                       </p>
                       <div role="group" aria-labelledby={`freq-${a.id}`} className="flex gap-1 rounded-xl bg-muted p-1">
                         {ALERT_FREQUENCIES.map((f) => (
@@ -143,7 +145,7 @@ export default async function LanesPage() {
                         aria-label={`Remove the lane ${originLabel} to ${shortName(d.name)}`}
                       >
                         <Trash2 className="h-4 w-4" aria-hidden />
-                        Remove
+                        {t("Remove")}
                       </button>
                     </form>
                   </Card>
@@ -159,9 +161,9 @@ export default async function LanesPage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 id="cards-heading" className="text-lg font-semibold tracking-tight">
-              Rate cards
+              {t("Rate cards")}
             </h2>
-            <p className="text-sm text-muted-foreground">Your destination prices. Private to your company. Nothing is sent without you.</p>
+            <p className="text-sm text-muted-foreground">{t("Your destination prices. Private to your company. Nothing is sent without you.")}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
@@ -169,19 +171,19 @@ export default async function LanesPage() {
               className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
             >
               <Plus className="h-4 w-4" aria-hidden />
-              New rate card
+              {t("New rate card")}
             </Link>
             <Link
               href="/lanes/rate-cards/upload"
               className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-input bg-card px-4 text-sm font-semibold"
             >
               <FileSpreadsheet className="h-4 w-4" aria-hidden />
-              Upload a sheet
+              {t("Upload a sheet")}
             </Link>
           </div>
         </div>
         {cards.length === 0 ? (
-          <EmptyState title="No rate cards yet" body="Add your port charges and cartage prices once, and every matching job opens with the quote already filled in." />
+          <EmptyState title={t("No rate cards yet")} body="Add your port charges and cartage prices once, and every matching job opens with the quote already filled in." />
         ) : (
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
             {cards.map((c) => {
@@ -198,12 +200,12 @@ export default async function LanesPage() {
                           {port ? shortName(port.name) : "Port"} · {c.currency} · {c.charges?.[0]?.count ?? 0} lines
                         </p>
                       </div>
-                      {expired ? <Badge tone="danger">Expired</Badge> : expiring ? <Badge tone="warning">Expires soon</Badge> : <Badge tone="success">Active</Badge>}
+                      {expired ? <Badge tone="danger">{t("Expired")}</Badge> : expiring ? <Badge tone="warning">{t("Expires soon")}</Badge> : <Badge tone="success">{t("Active")}</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">Valid to {formatDate(c.valid_to)}</p>
                     <Link href={`/lanes/rate-cards/${c.id}`} className="mt-auto inline-flex min-h-11 items-center gap-2 text-sm font-bold text-accent">
                       <Pencil className="h-4 w-4" aria-hidden />
-                      Edit
+                      {t("Edit")}
                     </Link>
                   </Card>
                 </li>
@@ -216,11 +218,10 @@ export default async function LanesPage() {
       <section className="rounded-2xl border border-border bg-card p-4 text-sm shadow-card">
         <p className="flex items-center gap-2 font-bold">
           <Bell className="h-4 w-4 text-sea" aria-hidden />
-          How alerts work
+          {t("How alerts work")}
         </p>
         <p className="mt-2 text-muted-foreground">
-          Instant alerts email you as each matching job is posted. The daily summary is one email at 7am Sydney time. Emails show public job
-          details only and never any quote, and the link opens the job with your rate card already applied.
+          {t("Instant alerts email you as each matching job is posted. The daily summary is one email at 7am Sydney time. Emails show public job details only and never any quote, and the link opens the job with your rate card already applied.")}
         </p>
       </section>
     </div>

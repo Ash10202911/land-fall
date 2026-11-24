@@ -107,3 +107,10 @@ export function watchErrors(page: Page, bucket: string[], label: string) {
 export async function expectNoHorizontalScroll(page: Page): Promise<number> {
   return page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 }
+
+/** Everyone starts on a "What would you like to do?" screen. Picks a side if it is showing. */
+export async function chooseMode(page: import("@playwright/test").Page, mode: "requester" | "quoter") {
+  const button = page.getByTestId(`choose-${mode}`);
+  await button.waitFor({ timeout: 8000 }).catch(() => {});
+  if (await button.isVisible().catch(() => false)) await button.click();
+}

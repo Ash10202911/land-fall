@@ -104,3 +104,18 @@ Written by Claude Code during `/build-core`.
 | 3 | Playwright journey passes | tests/e2e/journey.spec.ts on an iPhone 13 viewport: agent posts (past deadline rejected), two forwarders quote (sealed), Basic agent cannot award, admin verifies, agent awards, winner sees contacts, loser does not, non-admin gets 404 on /admin, no console errors. 1 passed | Pass |
 | 4 | README updated | README.md: local setup, env vars, console email fallback, deploy steps | Pass |
 | 5 | Branch core-build pushed, PR open to main | See PR link in the final report | Pending until push |
+
+## v2 phase 3: decide with confidence
+| Item | Status | Evidence / notes |
+|---|---|---|
+| Quote lines say what they cover (destination, customs, delivery, other) | done | Migration 20261124000200; rate-card pre-fill sets the category; validation test |
+| Like-for-like comparison | done | compare.test.ts (13); e2e: lowest complete badge, missing legs flagged, "show only quotes that cover everything" |
+| - Decision: no exchange rate | noted | Different currencies are never compared or totalled; a note says so. The badge needs 2+ complete quotes in the same currency |
+| - Decision: older quotes | noted | Quotes with no tagged lines show "coverage was not tagged" and get no warnings or badge |
+| Public questions and answers | done | sec11 RLS tests (18); question validation tests; e2e: contact details refused, unanswered question hidden from other forwarders, asker never named, answer visible to all |
+| - Decision: askers are anonymous | noted | Only the asking company sees "Your question". Limits: 3 per job per company, 20 per 24 hours |
+| One-tap extend | done | Database rule: requester only, last 12 hours, no live quotes, 24 or 48 hours, max twice. e2e covers both extensions, the refusal of a third, and a job with a quote. Lane alerts re-sent once per extension (delivery log now keyed by round) |
+| Everyone starts on one screen | done | A first screen asks "I need a quote" or "I want to quote"; the Requester/Quoter switch stays. Company type no longer decides the default side. e2e updated |
+| Language (English and Simplified Chinese) | parked | Translation wiring, per-person setting and per-recipient email language are in, but the Chinese dictionary is empty and the switch is hidden. Needs writing and native review before it is shown |
+| - Needs for production | open | Apply migrations 20261123000100, 20261124000100, 20261124000200 before the code goes live; RESEND_API_KEY, EMAIL_FROM, CRON_SECRET in Vercel. Never set DEMO_* in production |
+| Checks | pass | lint clean; typecheck clean; npm test 145 passed; test:rls 118 passed after db reset; next build compiled; Playwright 13 passed (iPhone 13) from a clean seed |

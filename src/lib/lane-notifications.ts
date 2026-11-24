@@ -141,7 +141,6 @@ export async function notifyLaneAlertsForExtension(jobId: string): Promise<void>
     const round = Number(raw.extensions ?? 0);
     if (raw.status !== "open" || round < 1) return;
     const job = toRunJob(raw);
-    const destCode = first(raw.destination)?.code ?? "";
 
     const all = [...(await loadAlerts(admin, "instant", job.destination_port_id)), ...(await loadAlerts(admin, "daily", job.destination_port_id))];
     const toldBefore = await loadDelivered(admin, all, [job.id], 0);

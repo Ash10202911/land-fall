@@ -1,6 +1,6 @@
 # Southbound v2 plan
 
-Status: phase 1 is in production; phase 2 is built on the `v2` branch (see docs/BUILD_LOG.md); phases 3 and 4 are not built. Decided 22/11/2026. Mockups:
+Status: phase 1 is in production; phases 2 and 3 are built on the `v2` branch (see docs/BUILD_LOG.md); phase 4 is not built. Decided 22/11/2026. Mockups:
 https://claude.ai/artifact/4rDqhbZbzWpVpxGpTfHzSX (ocean + sky screens and the "v2" row).
 
 Before building, the parts we keep move into docs/REQUIREMENTS.md (v1 says anything not in the spec is out

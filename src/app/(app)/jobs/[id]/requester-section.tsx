@@ -210,7 +210,7 @@ export async function RequesterSection({
     company.status === "active" &&
     liveQuotes === 0 &&
     job.extensions < MAX_EXTENSIONS &&
-    new Date(job.deadline_at).getTime() - Date.now() <= EXTEND_WINDOW_MS;
+    new Date(job.deadline_at).getTime() - new Date().getTime() <= EXTEND_WINDOW_MS;
 
   return (
     <section aria-labelledby="quotes-heading" className="space-y-3">

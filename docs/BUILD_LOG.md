@@ -142,3 +142,15 @@ Written by Claude Code during `/build-core`.
 | Video scripts and shot lists | done as scripts | docs/MARKETING_SCRIPTS.md. The videos themselves are not recorded |
 | - Not done | open | The portal's own colours are still the earlier teal theme, not the logo blue; the page copy is English only (Chinese waits on the dictionary); NEXT_PUBLIC_APP_URL and the cargotribe.com.au domain are set in Vercel by the founder |
 | Checks | pass | lint, typecheck, build clean; npm test 148 passed; Playwright 14 passed (new landing test) |
+
+## Landing page, second version: interactive and human
+| Item | Status | Evidence / notes |
+|---|---|---|
+| Real demo videos with zoom | done | Three screen recordings of the actual portal (post a job, compare and award, quote from a rate card), recorded on the local stack with demo data: slow typing, tap ripples, on-screen captions, zoom in and out. public/marketing/video-*.webm with poster frames. They load only when played |
+| Interactive "A day on CargoTribe" | done | Five steps with two example people; steps through itself, then follows taps; reduced-motion respected. Labelled as an example |
+| "The usual way / On CargoTribe" switch | done | A pile of messy quotes against the same prices side by side. Labelled as an illustration |
+| "Pick your lane" | done | Choose origin, port and mode and see the alert email a forwarder would get. Nothing is saved |
+| Warmer voice and look | done | New headline and copy, handwritten notes (Caveat), a warm amber accent |
+| - Honest content | noted | No statistics, testimonials or savings claims. People and prices in the demos are made up and labelled |
+| - Not done | open | Videos have captions only, no voice-over; Chinese copy; in-portal colours still teal. The videos total about 9 MB and load on demand |
+| Checks | pass | lint, typecheck, build clean; Playwright 14 passed (landing test now taps through each demo) |

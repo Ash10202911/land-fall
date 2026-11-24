@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { onboardingSchema, profileSchema, safeNextPath, signInSchema } from "./auth";
+import { onboardingSchema, profileSchema, safeNextPath, signInSchema, websiteSchema } from "./auth";
 
 describe("signInSchema", () => {
   it("normalises a valid email", () => {
@@ -12,12 +12,30 @@ describe("signInSchema", () => {
 
 describe("onboardingSchema", () => {
   it("accepts the three fields", () => {
-    const r = onboardingSchema.safeParse({ companyName: "Acme Freight", country: "China", role: "agent" });
+    const r = onboardingSchema.safeParse({ companyName: "Acme Freight", country: "China", role: "agent", website: "acme.com" });
     expect(r.success).toBe(true);
   });
   it("rejects an unknown role and a short name", () => {
-    expect(onboardingSchema.safeParse({ companyName: "A", country: "China", role: "agent" }).success).toBe(false);
-    expect(onboardingSchema.safeParse({ companyName: "Acme", country: "China", role: "admin" }).success).toBe(false);
+    const ok = { country: "China", website: "acme.com" };
+    expect(onboardingSchema.safeParse({ ...ok, companyName: "A", role: "agent" }).success).toBe(false);
+    expect(onboardingSchema.safeParse({ ...ok, companyName: "Acme", role: "admin" }).success).toBe(false);
+  });
+  it("needs a website", () => {
+    expect(onboardingSchema.safeParse({ companyName: "Acme", country: "China", role: "agent" }).success).toBe(false);
+    expect(onboardingSchema.safeParse({ companyName: "Acme", country: "China", role: "agent", website: "  " }).success).toBe(false);
+  });
+});
+
+describe("websiteSchema", () => {
+  it("adds https when the scheme is missing and keeps the path", () => {
+    expect(websiteSchema.parse("acme.com")).toBe("https://acme.com");
+    expect(websiteSchema.parse("  WWW.Acme-Freight.com.au/about ")).toBe("https://www.acme-freight.com.au/about");
+    expect(websiteSchema.parse("http://acme.cn")).toBe("http://acme.cn");
+  });
+  it("rejects things that are not a website", () => {
+    for (const bad of ["acme", "not a website", "javascript:alert(1)", "ftp://acme.com", "https://", "a b.com", "localhost", "https://192.168.0.1"]) {
+      expect(websiteSchema.safeParse(bad).success, bad).toBe(false);
+    }
   });
 });
 

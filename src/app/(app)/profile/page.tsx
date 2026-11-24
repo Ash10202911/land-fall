@@ -6,6 +6,7 @@ import { requireMember } from "@/lib/auth";
 import { ProfileForm } from "./profile-form";
 import { signOut } from "./actions";
 import { getT } from "@/lib/i18n/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Profile" };
 
@@ -13,6 +14,9 @@ export default async function ProfilePage() {
   const t = await getT();
   const me = await requireMember();
   const { company } = me;
+  const supabase = await createClient();
+  const { data: site } = await supabase.from("company_sites").select("website").eq("company_id", company.id).maybeSingle();
+  const website = site?.website as string | undefined;
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4">
       <h1 className="text-xl font-semibold">{t("Profile")}</h1>
@@ -30,6 +34,7 @@ export default async function ProfilePage() {
         <p className="text-sm text-muted-foreground">
           {company.country} · {company.role === "agent" ? t("Overseas agent") : t("ANZ forwarder")}
         </p>
+        {website ? <p className="text-sm text-muted-foreground">{website}</p> : null}
         {company.trust_level !== "verified" ? (
           <p className="text-sm">
             {t("Get verified to award jobs. An admin reviews companies by hand; contact the Southbound team to start.")}

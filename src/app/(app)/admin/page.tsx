@@ -47,6 +47,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   if (search) query = query.ilike("name", `%${search}%`);
   const { data } = await query;
   const companies = (data ?? []) as CompanyRow[];
+  // Only an admin gets every company's website, so a verifier can check who they are looking at.
+  const { data: sites } = await supabase.from("company_sites").select("company_id, website");
+  const websiteOf = new Map(((sites ?? []) as { company_id: string; website: string }[]).map((s) => [s.company_id, s.website]));
 
   const { data: auditData } = await supabase
     .from("admin_audit_log")
@@ -95,6 +98,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       {c.country} · {c.role === "agent" ? "Overseas agent" : "ANZ forwarder"} · joined{" "}
                       {formatDate(c.created_at)}
                     </p>
+                    {websiteOf.get(c.id) ? (
+                      <a
+                        href={websiteOf.get(c.id)}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="break-all text-sm text-accent underline"
+                      >
+                        {websiteOf.get(c.id)}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No website on file</p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     {c.trust_level === "verified" ? (

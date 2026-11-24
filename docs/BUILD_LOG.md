@@ -119,3 +119,14 @@ Written by Claude Code during `/build-core`.
 | Language (English and Simplified Chinese) | parked | Translation wiring, per-person setting and per-recipient email language are in, but the Chinese dictionary is empty and the switch is hidden. Needs writing and native review before it is shown |
 | - Needs for production | open | Apply migrations 20261123000100, 20261124000100, 20261124000200 before the code goes live; RESEND_API_KEY, EMAIL_FROM, CRON_SECRET in Vercel. Never set DEMO_* in production |
 | Checks | pass | lint clean; typecheck clean; npm test 145 passed; test:rls 118 passed after db reset; next build compiled; Playwright 13 passed (iPhone 13) from a clean seed |
+
+## Sign-up: company website
+| Item | Status | Evidence / notes |
+|---|---|---|
+| New companies give a website at sign-up | done | onboarding form and onboard() require it; accepts "acme.com" or a full address, stored as https; only http(s) with a real host. Unit tests for the validator; RLS test refuses an empty or javascript: address |
+| Website is private | done | Stored in company_sites: readable only by its own company and admins, no API writes. RLS test covers other company, anonymous, own, admin and write attempts |
+| Admin sees the website | done | Link on each company in the admin page (opens in a new tab, noopener, nofollow); "No website on file" for older companies |
+| - Decision: no business number | noted | Per the founder: people do not remember them. Website only |
+| - Decision: new companies can post straight away | noted | Per the founder: no approval hold. Spam is handled by Verified-only awarding, per-company limits and suspension |
+| - Needs for production | open | Apply 20261125000100_company_website.sql before the code goes live. Not done: sign-in email rate limits and a bot check (need a Turnstile or similar key) |
+| Checks | pass | lint, typecheck, build clean; npm test 148 passed; test:rls 119 passed; Playwright 13 passed |

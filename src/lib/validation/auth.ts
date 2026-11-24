@@ -10,6 +10,28 @@ export const signInSchema = z.object({
     .pipe(z.email("Enter a valid email address")),
 });
 
+/**
+ * A company website. People type "acme.com" as often as "https://acme.com", so a missing scheme is added.
+ * Only http and https, a real-looking host, no spaces. Returns the cleaned address.
+ */
+export const websiteSchema = z
+  .string()
+  .trim()
+  .min(1, "Enter your company website")
+  .max(200, "That website address is too long")
+  .transform((value, ctx) => {
+    const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`;
+    try {
+      const url = new URL(withScheme);
+      const host = url.hostname;
+      if ((url.protocol !== "https:" && url.protocol !== "http:") || !/^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i.test(host)) throw new Error("bad");
+      return `${url.protocol}//${host}${url.pathname === "/" ? "" : url.pathname}${url.search}`.slice(0, 200);
+    } catch {
+      ctx.addIssue({ code: "custom", message: "Enter a website such as acme.com" });
+      return z.NEVER;
+    }
+  });
+
 export const onboardingSchema = z.object({
   companyName: z
     .string()
@@ -22,6 +44,7 @@ export const onboardingSchema = z.object({
     .min(2, "Enter your country")
     .max(80, "Country must be 80 characters or fewer"),
   role: z.enum(["agent", "forwarder"], { error: "Choose agent or forwarder" }),
+  website: websiteSchema,
 });
 
 export const profileSchema = z.object({

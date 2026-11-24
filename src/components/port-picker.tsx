@@ -3,6 +3,7 @@
 import { useId, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/form";
+import { useT } from "@/components/i18n-provider";
 
 export type Port = { id: number; code: string; name: string; country: string };
 
@@ -24,6 +25,7 @@ export function PortPicker({
   defaultPortId?: number | null;
   invalid?: boolean;
 }) {
+  const t = useT();
   const listId = useId();
   const initial = ports.find((p) => p.id === defaultPortId) ?? null;
   const [selected, setSelected] = useState<Port | null>(initial);
@@ -56,7 +58,7 @@ export function PortPicker({
         aria-autocomplete="list"
         aria-invalid={invalid}
         autoComplete="off"
-        placeholder="Search by port, code or country"
+        placeholder={t("Search by port, code or country")}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -89,7 +91,7 @@ export function PortPicker({
           className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-border bg-card shadow-sm"
         >
           {matches.length === 0 ? (
-            <li className="px-3 py-3 text-sm text-muted-foreground">No ports match.</li>
+            <li className="px-3 py-3 text-sm text-muted-foreground">{t("No ports match.")}</li>
           ) : (
             matches.map((p, i) => (
               <li

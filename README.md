@@ -108,6 +108,8 @@ The founder and GitHub Actions deploy; development agents do not.
 - **Staging**: create a second Supabase project and a Vercel preview environment pointing at it, so tests and experiments never touch production data.
 - **Monitoring**: enable Vercel and Supabase alerts for 5xx errors and database CPU. Error pages show only a reference digest, never internal details or personal data.
 - **Abuse limits in the database**: at most 5 quote attempts per company per job, 20 jobs per company per 24 hours, and no quote validity date in the past. Admin maintenance through the service role is not limited.
+- **Lane alert emails**: set `RESEND_API_KEY` and `EMAIL_FROM` (a domain you have verified with Resend); without them the emails are printed to the server log. Instant alerts go out when a job is posted. The daily summary is a Vercel Cron call to `/api/cron/lane-digest` (scheduled in `vercel.json` at 20:00 and 21:00 UTC, so it runs at 7am in Sydney through daylight saving). It does nothing unless `CRON_SECRET` is set in Vercel to 16 or more random characters, and it needs `SUPABASE_SERVICE_ROLE_KEY`. Vercel's free plan allows two daily crons, which is exactly what this uses.
+- **Rate cards and lane alerts are private**: only the owning company can read them. Not even admins can.
 
 ## How the trust rules are enforced
 

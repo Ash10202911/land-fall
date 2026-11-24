@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { msg } from "@/lib/i18n";
 
 /**
  * Requester / Quoter view mode. The mode only chooses which screens and lists are shown; it never
@@ -12,7 +13,7 @@ export const MODE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export const modeSchema = z.enum(VIEW_MODES);
 
-export const MODE_LABEL: Record<ViewMode, string> = { requester: "Requester", quoter: "Quoter" };
+export const MODE_LABEL: Record<ViewMode, string> = { requester: msg("Requester"), quoter: msg("Quoter") };
 
 /** A valid mode, or null for anything else (treated as unset). */
 export function parseMode(value: unknown): ViewMode | null {
@@ -30,20 +31,21 @@ export function resolveMode(cookieValue: unknown, role: "agent" | "forwarder"): 
   return parseMode(cookieValue) ?? defaultModeFor(role);
 }
 
-export type NavIcon = "requests" | "request" | "board" | "quotes" | "profile";
+export type NavIcon = "requests" | "request" | "board" | "quotes" | "lanes" | "profile";
 export type NavItem = { href: string; label: string; icon: NavIcon };
 
 export function navItemsFor(mode: ViewMode): NavItem[] {
   return mode === "requester"
     ? [
-        { href: "/jobs", label: "My requests", icon: "requests" },
-        { href: "/post", label: "Request quote", icon: "request" },
-        { href: "/profile", label: "Profile", icon: "profile" },
+        { href: "/jobs", label: msg("My requests"), icon: "requests" },
+        { href: "/post", label: msg("Request quote"), icon: "request" },
+        { href: "/profile", label: msg("Profile"), icon: "profile" },
       ]
     : [
-        { href: "/jobs", label: "Job board", icon: "board" },
-        { href: "/quotes", label: "My quotes", icon: "quotes" },
-        { href: "/profile", label: "Profile", icon: "profile" },
+        { href: "/jobs", label: msg("Job board"), icon: "board" },
+        { href: "/quotes", label: msg("My quotes"), icon: "quotes" },
+        { href: "/lanes", label: msg("My lanes"), icon: "lanes" },
+        { href: "/profile", label: msg("Profile"), icon: "profile" },
       ];
 }
 

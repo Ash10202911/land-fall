@@ -17,6 +17,8 @@ import {
 } from "@/lib/scope";
 import { cn } from "@/lib/utils";
 import { postJob, type JobFormState } from "./actions";
+import { useT } from "@/components/i18n-provider";
+import { msg } from "@/lib/i18n";
 
 export type JobDefaults = {
   direction: "import" | "export";
@@ -46,11 +48,11 @@ type Services = { destination_charges: boolean; customs_clearance: boolean; deli
 
 const QUICK_TERMS = ["EXW", "FOB", "CIF", "DAP"] as const;
 const CLOSE_OPTIONS = [
-  ["24", "24 h"],
-  ["48", "48 h"],
-  ["72", "72 h"],
-  ["168", "7 days"],
-  ["custom", "Pick a date"],
+  ["24", msg("24 h")],
+  ["48", msg("48 h")],
+  ["72", msg("72 h")],
+  ["168", msg("7 days")],
+  ["custom", msg("Pick a date")],
 ] as const;
 
 /** Sensible destination services for each Incoterm; the requester can change them on the strip. */
@@ -129,6 +131,7 @@ export function PostJobForm({
   defaults?: JobDefaults;
   companies?: { id: string; name: string }[];
 }) {
+  const t = useT();
   const [state, action, pending] = useActionState<JobFormState, FormData>(postJob, {});
   const e = state.errors ?? {};
   const today = new Date().toISOString().slice(0, 10);
@@ -157,11 +160,11 @@ export function PostJobForm({
   const picked = (Object.keys(services) as (keyof Services)[]).filter((k) => services[k]);
   const scope = scopeFor(incoterm, picked);
   const air = mode === "Air";
-  const closeLabel = CLOSE_OPTIONS.find(([v]) => v === closeIn)?.[1] ?? "48 h";
+  const closeLabel = t(CLOSE_OPTIONS.find(([v]) => v === closeIn)?.[1] ?? "48 h");
 
-  const chooseTerm = (t: string) => {
-    setIncoterm(t);
-    setServices(servicesFor(t));
+  const chooseTerm = (term: string) => {
+    setIncoterm(term);
+    setServices(servicesFor(term));
   };
   const toggleLeg = (key: LegKey) => {
     const s = LEG_TO_SERVICE[key];
@@ -190,10 +193,10 @@ export function PostJobForm({
       ))}
 
       {companies ? (
-        <Card title="Admin: post on behalf of">
-          <Field label="Company" htmlFor="onBehalfOf">
+        <Card title={t("Admin: post on behalf of")}>
+          <Field label={t("Company")} htmlFor="onBehalfOf">
             <Select id="onBehalfOf" name="onBehalfOf" defaultValue="">
-              <option value="">My own company</option>
+              <option value="">{t("My own company")}</option>
               {companies.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -204,12 +207,12 @@ export function PostJobForm({
         </Card>
       ) : null}
 
-      <Card title="Route and cargo">
+      <Card title={t("Route and cargo")}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="From" htmlFor="originPortId" error={e.originPortId}>
+          <Field label={t("From")} htmlFor="originPortId" error={e.originPortId}>
             <PortPicker id="originPortId" name="originPortId" ports={ports} defaultPortId={defaults?.originPortId} invalid={Boolean(e.originPortId)} />
           </Field>
-          <Field label="To" htmlFor="destinationPortId" error={e.destinationPortId}>
+          <Field label={t("To")} htmlFor="destinationPortId" error={e.destinationPortId}>
             <PortPicker
               id="destinationPortId"
               name="destinationPortId"
@@ -219,19 +222,19 @@ export function PostJobForm({
             />
           </Field>
         </div>
-        <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Mode">
-          <Chip on={mode === "FCL"} onClick={() => setMode("FCL")}>Sea FCL</Chip>
-          <Chip on={mode === "LCL"} onClick={() => setMode("LCL")}>Sea LCL</Chip>
-          <Chip on={mode === "Air"} onClick={() => setMode("Air")}>Air</Chip>
+        <div className="grid grid-cols-3 gap-1.5" role="group" aria-label={t("Mode")}>
+          <Chip on={mode === "FCL"} onClick={() => setMode("FCL")}>{t("Sea FCL")}</Chip>
+          <Chip on={mode === "LCL"} onClick={() => setMode("LCL")}>{t("Sea LCL")}</Chip>
+          <Chip on={mode === "Air"} onClick={() => setMode("Air")}>{t("Air")}</Chip>
         </div>
         {mode === "FCL" ? (
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center overflow-hidden rounded-xl border border-input">
-              <button type="button" aria-label="One fewer container" onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-11 w-11 place-items-center bg-muted/60">
+              <button type="button" aria-label={t("One fewer container")} onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-11 w-11 place-items-center bg-muted/60">
                 <Minus className="h-4 w-4" aria-hidden />
               </button>
               <label htmlFor="containerQty" className="sr-only">
-                Number of containers
+                {t("Number of containers")}
               </label>
               <input
                 id="containerQty"
@@ -242,88 +245,88 @@ export function PostJobForm({
                 className="h-11 w-12 bg-card text-center text-lg font-bold"
                 aria-invalid={Boolean(e.containerQty)}
               />
-              <button type="button" aria-label="One more container" onClick={() => setQty((q) => Math.min(999, q + 1))} className="grid h-11 w-11 place-items-center bg-muted/60">
+              <button type="button" aria-label={t("One more container")} onClick={() => setQty((q) => Math.min(999, q + 1))} className="grid h-11 w-11 place-items-center bg-muted/60">
                 <Plus className="h-4 w-4" aria-hidden />
               </button>
             </div>
             <span className="font-bold text-muted-foreground" aria-hidden>
               ×
             </span>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Container type">
-              {CONTAINER_TYPES.map((t) => (
-                <Chip key={t} on={ctype === t} onClick={() => setCtype(t)} className="px-2.5">
-                  {t}
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("Container type")}>
+              {CONTAINER_TYPES.map((term) => (
+                <Chip key={term} on={ctype === term} onClick={() => setCtype(term)} className="px-2.5">
+                  {term}
                 </Chip>
               ))}
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Weight (kg)" htmlFor="weightKg" error={e.weightKg}>
+            <Field label={t("Weight (kg)")} htmlFor="weightKg" error={e.weightKg}>
               <Input id="weightKg" name="weightKg" type="number" inputMode="decimal" step="any" min={0} defaultValue={defaults?.weightKg ?? undefined} aria-invalid={Boolean(e.weightKg)} />
             </Field>
-            <Field label="Volume (cbm)" htmlFor="volumeCbm" error={e.volumeCbm}>
+            <Field label={t("Volume (cbm)")} htmlFor="volumeCbm" error={e.volumeCbm}>
               <Input id="volumeCbm" name="volumeCbm" type="number" inputMode="decimal" step="any" min={0} defaultValue={defaults?.volumeCbm ?? undefined} aria-invalid={Boolean(e.volumeCbm)} />
             </Field>
           </div>
         )}
-        <Field label="What is it?" htmlFor="cargoDescription" error={e.cargoDescription} hint="A short line is enough, for example: furniture and homewares, palletised.">
+        <Field label={t("What is it?")} htmlFor="cargoDescription" error={e.cargoDescription} hint={t("A short line is enough, for example: furniture and homewares, palletised.")}>
           <Input id="cargoDescription" name="cargoDescription" defaultValue={defaults?.cargoDescription} aria-invalid={Boolean(e.cargoDescription)} />
         </Field>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Special cargo">
-          <FlagToggle name="flagDg" label="Dangerous goods" defaultChecked={defaults?.flagDg} />
-          <FlagToggle name="flagReefer" label="Reefer" defaultChecked={defaults?.flagReefer} />
-          <FlagToggle name="flagBmsb" label="BMSB risk" defaultChecked={defaults?.flagBmsb} />
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("Special cargo")}>
+          <FlagToggle name="flagDg" label={t("Dangerous goods")} defaultChecked={defaults?.flagDg} />
+          <FlagToggle name="flagReefer" label={t("Reefer")} defaultChecked={defaults?.flagReefer} />
+          <FlagToggle name="flagBmsb" label={t("BMSB risk")} defaultChecked={defaults?.flagBmsb} />
         </div>
       </Card>
 
-      <Card title="Incoterm and what forwarders price">
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Incoterm">
-          {QUICK_TERMS.map((t) => (
-            <Chip key={t} on={incoterm === t} onClick={() => chooseTerm(t)}>
-              {t}
+      <Card title={t("Incoterm and what forwarders price")}>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("Incoterm")}>
+          {QUICK_TERMS.map((term) => (
+            <Chip key={term} on={incoterm === term} onClick={() => chooseTerm(term)}>
+              {term}
             </Chip>
           ))}
           <label className="min-w-28 flex-1">
-            <span className="sr-only">Other Incoterm</span>
+            <span className="sr-only">{t("Other Incoterm")}</span>
             <Select
               value={(QUICK_TERMS as readonly string[]).includes(incoterm) ? "" : incoterm}
               onChange={(ev) => ev.target.value && chooseTerm(ev.target.value)}
             >
-              <option value="">More…</option>
-              {INCOTERMS.filter((t) => !(QUICK_TERMS as readonly string[]).includes(t)).map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              <option value="">{t("More…")}</option>
+              {INCOTERMS.filter((term) => !(QUICK_TERMS as readonly string[]).includes(term)).map((term) => (
+                <option key={term} value={term}>
+                  {term}
                 </option>
               ))}
             </Select>
           </label>
         </div>
         <p className="text-sm font-bold">
-          Forwarders price: <span className="text-sea-ink">{scope.summary}</span>
+          {t("Forwarders price:")} <span className="text-sea-ink">{t(scope.summary)}</span>
         </p>
         <ScopeStrip legs={scope.legs} air={air} onToggle={toggleLeg} />
-        <p className="text-xs text-muted-foreground">Tap Dest., Customs or Delivery to add or remove it. Pickup and freight follow the Incoterm.</p>
+        <p className="text-xs text-muted-foreground">{t("Tap Dest., Customs or Delivery to add or remove it. Pickup and freight follow the Incoterm.")}</p>
       </Card>
 
       {services.delivery ? (
-        <Card title="Delivery">
+        <Card title={t("Delivery")}>
           <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-3">
-            <Field label="Suburb" htmlFor="deliverySuburb" error={e.deliverySuburb}>
+            <Field label={t("Suburb")} htmlFor="deliverySuburb" error={e.deliverySuburb}>
               <Input id="deliverySuburb" name="deliverySuburb" autoComplete="address-level2" defaultValue={defaults?.deliverySuburb ?? undefined} aria-invalid={Boolean(e.deliverySuburb)} />
             </Field>
-            <Field label="Postcode" htmlFor="deliveryPostcode" error={e.deliveryPostcode}>
+            <Field label={t("Postcode")} htmlFor="deliveryPostcode" error={e.deliveryPostcode}>
               <Input id="deliveryPostcode" name="deliveryPostcode" inputMode="numeric" maxLength={4} autoComplete="postal-code" defaultValue={defaults?.deliveryPostcode ?? undefined} aria-invalid={Boolean(e.deliveryPostcode)} />
             </Field>
           </div>
           <div>
             <p id="unload-label" className="mb-1.5 text-sm font-semibold">
-              How will it be unloaded?
+              {t("How will it be unloaded?")}
             </p>
             <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="unload-label">
               {UNLOAD_TYPES.map((u) => (
                 <Chip key={u} on={unload === u} onClick={() => setUnload(u)}>
-                  {UNLOAD_LABELS[u]}
+                  {t(UNLOAD_LABELS[u])}
                 </Chip>
               ))}
             </div>
@@ -335,17 +338,17 @@ export function PostJobForm({
           </div>
           <p className="flex items-start gap-2 text-xs text-muted-foreground">
             <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-            The suburb shows on the board. We ask for the street address only when you award, and share it with the winner alone.
+            {t("The suburb shows on the board. We ask for the street address only when you award, and share it with the winner alone.")}
           </p>
         </Card>
       ) : null}
 
-      <Card title="When">
+      <Card title={t("When")}>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Ready on" htmlFor="readyDate" error={e.readyDate}>
+          <Field label={t("Ready on")} htmlFor="readyDate" error={e.readyDate}>
             <Input id="readyDate" name="readyDate" type="date" min={today} aria-invalid={Boolean(e.readyDate)} />
           </Field>
-          <Field label="Needed by (optional)" htmlFor="requiredBy" error={e.requiredBy}>
+          <Field label={t("Needed by (optional)")} htmlFor="requiredBy" error={e.requiredBy}>
             <Input id="requiredBy" name="requiredBy" type="date" min={today} aria-invalid={Boolean(e.requiredBy)} />
           </Field>
         </div>
@@ -360,33 +363,36 @@ export function PostJobForm({
           className="flex min-h-11 w-full items-center gap-3 text-left"
         >
           <span className="min-w-0 flex-1">
-            <span className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">Defaults</span>
+            <span className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("Defaults")}</span>
             <span className="mt-1 block text-sm font-semibold">
-              Closes in {closeLabel} · {REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]} ·{" "}
-              {direction === "import" ? "Import to ANZ" : "Export from ANZ"}
+              {t("Closes in {time} · {repeat} · {direction}", {
+                time: closeLabel,
+                repeat: t(REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]),
+                direction: direction === "import" ? t("Import to ANZ") : t("Export from ANZ"),
+              })}
             </span>
           </span>
-          <span className="text-sm font-bold text-accent">{showMore ? "Done" : "Change"}</span>
+          <span className="text-sm font-bold text-accent">{showMore ? t("Done") : t("Change")}</span>
         </button>
         <div id="defaults-panel" hidden={!showMore} className="mt-3 space-y-4">
           <div>
             <p id="close-label" className="mb-1.5 text-sm font-semibold">
-              Quotes close in
+              {t("Quotes close in")}
             </p>
             <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="close-label">
               {CLOSE_OPTIONS.map(([v, label]) => (
                 <Chip key={v} on={closeIn === v} onClick={() => setCloseIn(v)}>
-                  {label}
+                  {t(label)}
                 </Chip>
               ))}
             </div>
           </div>
           {closeIn === "custom" ? (
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Deadline date" htmlFor="deadlineDate" error={e.deadlineDate}>
+              <Field label={t("Deadline date")} htmlFor="deadlineDate" error={e.deadlineDate}>
                 <Input id="deadlineDate" name="deadlineDate" type="date" min={today} aria-invalid={Boolean(e.deadlineDate)} />
               </Field>
-              <Field label="Time (UTC)" htmlFor="deadlineTime" error={e.deadlineTime}>
+              <Field label={t("Time (UTC)")} htmlFor="deadlineTime" error={e.deadlineTime}>
                 <Input id="deadlineTime" name="deadlineTime" type="time" defaultValue="09:00" aria-invalid={Boolean(e.deadlineTime)} />
               </Field>
             </div>
@@ -397,31 +403,31 @@ export function PostJobForm({
           ) : null}
           <div>
             <p id="repeat-label" className="mb-1.5 text-sm font-semibold">
-              Is this regular work?
+              {t("Is this regular work?")}
             </p>
             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4" role="group" aria-labelledby="repeat-label">
               {REPEAT_FREQUENCIES.map((r) => (
                 <Chip key={r} on={repeat === r} onClick={() => setRepeat(r)}>
-                  {REPEAT_LABELS[r]}
+                  {t(REPEAT_LABELS[r])}
                 </Chip>
               ))}
             </div>
           </div>
           {repeat !== "one_off" ? (
-            <Field label="Expected volume each time" htmlFor="repeatVolume" error={e.repeatVolume} hint="Regular work gets a green badge on the board and attracts more quotes.">
-              <Input id="repeatVolume" name="repeatVolume" defaultValue={defaults?.repeatVolume ?? undefined} placeholder="About 4 x 40HC" aria-invalid={Boolean(e.repeatVolume)} />
+            <Field label={t("Expected volume each time")} htmlFor="repeatVolume" error={e.repeatVolume} hint={t("Regular work gets a green badge on the board and attracts more quotes.")}>
+              <Input id="repeatVolume" name="repeatVolume" defaultValue={defaults?.repeatVolume ?? undefined} placeholder={t("About 4 x 40HC")} aria-invalid={Boolean(e.repeatVolume)} />
             </Field>
           ) : null}
           <div>
             <p id="direction-label" className="mb-1.5 text-sm font-semibold">
-              Direction
+              {t("Direction")}
             </p>
             <div className="grid grid-cols-2 gap-1.5" role="group" aria-labelledby="direction-label">
-              <Chip on={direction === "import"} onClick={() => setDirection("import")}>Import to ANZ</Chip>
-              <Chip on={direction === "export"} onClick={() => setDirection("export")}>Export from ANZ</Chip>
+              <Chip on={direction === "import"} onClick={() => setDirection("import")}>{t("Import to ANZ")}</Chip>
+              <Chip on={direction === "export"} onClick={() => setDirection("export")}>{t("Export from ANZ")}</Chip>
             </div>
           </div>
-          <Field label="Notes (optional)" htmlFor="notes" error={e.notes}>
+          <Field label={t("Notes (optional)")} htmlFor="notes" error={e.notes}>
             <Textarea id="notes" name="notes" defaultValue={defaults?.notes ?? undefined} aria-invalid={Boolean(e.notes)} />
           </Field>
         </div>
@@ -434,22 +440,22 @@ export function PostJobForm({
       ) : null}
       {Object.keys(e).length > 0 ? (
         <p role="alert" className="text-sm text-destructive">
-          Please fix the highlighted fields.
+          {t("Please fix the highlighted fields.")}
         </p>
       ) : null}
 
       <div className="sticky bottom-[5.5rem] z-10 flex items-center gap-3 rounded-[22px] bg-primary p-3 pl-4 text-primary-foreground shadow-lift md:bottom-4">
         <span className="min-w-0 flex-1">
           <span className="block truncate font-bold">
-            {scope.summary} · {mode === "FCL" ? `${qty} × ${ctype}` : mode === "Air" ? "Air" : "Sea LCL"}
+            {t(scope.summary)} · {mode === "FCL" ? `${qty} × ${ctype}` : mode === "Air" ? t("Air") : t("Sea LCL")}
           </span>
           <span className="block truncate text-xs text-cyan-100">
-            {incoterm} · closes in {closeLabel}
-            {repeat !== "one_off" ? ` · ${REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]]}` : ""}
+            {t("{term} · closes in {time}", { term: incoterm, time: closeLabel })}
+            {repeat !== "one_off" ? ` · ${t(REPEAT_LABELS[repeat as (typeof REPEAT_FREQUENCIES)[number]])}` : ""}
           </span>
         </span>
         <Button type="submit" disabled={pending} className="shrink-0 bg-cyan-300 text-primary hover:bg-cyan-200">
-          {pending ? "Posting…" : "Post request"}
+          {pending ? t("Posting…") : t("Post request")}
         </Button>
       </div>
     </form>

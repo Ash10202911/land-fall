@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { useT } from "@/components/i18n-provider";
 import { cn } from "@/lib/utils";
 
 const fieldBase =
@@ -37,6 +40,7 @@ export function Field({
   hint?: string;
   children: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="space-y-1">
       <Label htmlFor={htmlFor}>{label}</Label>
@@ -44,7 +48,7 @@ export function Field({
       {hint && !error ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       {error ? (
         <p role="alert" id={`${htmlFor}-error`} className="text-sm text-destructive">
-          {error}
+          {t(error)}
         </p>
       ) : null}
     </div>

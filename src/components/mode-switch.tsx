@@ -5,9 +5,11 @@ import { useFormStatus } from "react-dom";
 import { setViewMode } from "@/app/(app)/mode-actions";
 import { MODE_LABEL, VIEW_MODES, type ViewMode } from "@/lib/mode";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n-provider";
 
 function Option({ value, active }: { value: ViewMode; active: boolean }) {
   const { pending } = useFormStatus();
+  const t = useT();
   return (
     <button
       type="submit"
@@ -21,7 +23,7 @@ function Option({ value, active }: { value: ViewMode; active: boolean }) {
         pending && "opacity-70",
       )}
     >
-      {MODE_LABEL[value]}
+      {t(MODE_LABEL[value])}
     </button>
   );
 }
@@ -31,11 +33,12 @@ function Option({ value, active }: { value: ViewMode; active: boolean }) {
  * works even before the page's JavaScript has loaded. Arrow keys move between the two options.
  */
 export function ModeSwitch({ mode }: { mode: ViewMode }) {
+  const t = useT();
   const forms = useRef<Record<ViewMode, HTMLFormElement | null>>({ requester: null, quoter: null });
   return (
     <div
       role="radiogroup"
-      aria-label="Working as"
+      aria-label={t("Working as")}
       className="flex rounded-2xl bg-muted p-1"
       onKeyDown={(e) => {
         if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {

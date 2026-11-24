@@ -1,6 +1,9 @@
+"use client";
+
 import { Anchor, FileCheck2, MapPin, Plane, Ship, Truck, type LucideIcon } from "lucide-react";
 import type { Leg, LegKey } from "@/lib/scope";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n-provider";
 
 const ICON: Record<LegKey, LucideIcon> = {
   pickup: Truck,
@@ -25,8 +28,9 @@ export function ScopeStrip({
   onToggle?: (key: LegKey) => void;
   compact?: boolean;
 }) {
+  const t = useT();
   return (
-    <ul className="grid grid-cols-5 gap-1.5" aria-label="What the forwarder prices">
+    <ul className="grid grid-cols-5 gap-1.5" aria-label={t("What the forwarder prices")}>
       {legs.map((leg) => {
         const Icon = leg.key === "freight" && air ? Plane : ICON[leg.key];
         const fixed = leg.key === "pickup" || leg.key === "freight";
@@ -48,7 +52,7 @@ export function ScopeStrip({
             <span className={tile} aria-hidden>
               <Icon className="h-5 w-5" />
             </span>
-            <span className={label}>{leg.label}</span>
+            <span className={label}>{t(leg.label)}</span>
           </>
         );
         return (
@@ -61,12 +65,12 @@ export function ScopeStrip({
                 className="flex min-h-11 w-full flex-col items-center gap-1"
               >
                 {content}
-                <span className="sr-only">{leg.on ? "included, tap to remove" : "not included, tap to add"}</span>
+                <span className="sr-only">{leg.on ? t("included, tap to remove") : t("not included, tap to add")}</span>
               </button>
             ) : (
               <div className="flex flex-col items-center gap-1">
                 {content}
-                <span className="sr-only">{leg.on ? "you price this" : "not needed"}</span>
+                <span className="sr-only">{leg.on ? t("you price this") : t("not needed")}</span>
               </div>
             )}
           </li>

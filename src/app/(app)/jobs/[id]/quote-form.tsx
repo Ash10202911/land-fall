@@ -7,10 +7,13 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { CURRENCIES, formatMoney, parseMoneyToMinor, totalsByCurrency } from "@/lib/domain";
 import type { FormState } from "@/lib/validation/auth";
 import { submitQuote, updateQuote } from "./quote-actions";
+import { useT } from "@/components/i18n-provider";
+import { QUOTE_CATEGORIES, QUOTE_CATEGORY_LABELS, type QuoteCategory } from "@/lib/compare";
 
-export type LineDraft = { chargeName: string; amount: string; currency: string; gstIncluded: boolean };
+/** `source` is set on lines filled in from a rate card; it is for display only and is never saved. */
+export type LineDraft = { chargeName: string; amount: string; currency: string; gstIncluded: boolean; category: QuoteCategory; source?: string };
 
-const blankLine = (): LineDraft => ({ chargeName: "", amount: "", currency: "AUD", gstIncluded: true });
+const blankLine = (): LineDraft => ({ chargeName: "", amount: "", currency: "AUD", gstIncluded: true, category: "other" });
 
 export function QuoteForm({
   jobId,
@@ -27,6 +30,7 @@ export function QuoteForm({
   initialNotes?: string;
   minDate: string;
 }) {
+  const t = useT();
   const bound = quoteId
     ? (prev: FormState, fd: FormData) => updateQuote(jobId, quoteId, prev, fd)
     : (prev: FormState, fd: FormData) => submitQuote(jobId, prev, fd);
@@ -46,7 +50,14 @@ export function QuoteForm({
   );
 
   function update(i: number, patch: Partial<LineDraft>) {
-    setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+    setLines((prev) =>
+      prev.map((l, idx) => {
+        if (idx !== i) return l;
+        // Changing a line that came from a rate card marks it, so the forwarder can see what they touched.
+        const touched = l.source && !l.source.endsWith("(edited)") && ("chargeName" in patch || "amount" in patch);
+        return { ...l, ...patch, ...(touched ? { source: `${l.source} (edited)` } : {}) };
+      }),
+    );
   }
 
   return (
@@ -63,17 +74,22 @@ export function QuoteForm({
       <ul className="space-y-3">
         {lines.map((line, i) => (
           <li key={i} className="space-y-3 rounded-xl border border-border p-3">
-            <Field label={`Charge ${i + 1}`} htmlFor={`charge-${i}`} error={e[`lines.${i}.chargeName`]}>
+            {line.source ? (
+              <p className="inline-flex items-center rounded-md bg-sea-soft px-2 py-1 text-xs font-semibold text-sea-ink" data-testid="line-source">
+                {line.source}
+              </p>
+            ) : null}
+            <Field label={t("Charge {n}", { n: i + 1 })} htmlFor={`charge-${i}`} error={e[`lines.${i}.chargeName`]}>
               <Input
                 id={`charge-${i}`}
                 value={line.chargeName}
-                placeholder="For example, Destination terminal handling"
+                placeholder={t("For example, Destination terminal handling")}
                 onChange={(ev) => update(i, { chargeName: ev.target.value })}
                 aria-invalid={Boolean(e[`lines.${i}.chargeName`])}
               />
             </Field>
             <div className="grid grid-cols-[1fr_6.5rem] gap-3">
-              <Field label="Amount" htmlFor={`amount-${i}`} error={e[`lines.${i}.amount`]}>
+              <Field label={t("Amount")} htmlFor={`amount-${i}`} error={e[`lines.${i}.amount`]}>
                 <Input
                   id={`amount-${i}`}
                   inputMode="decimal"
@@ -83,7 +99,7 @@ export function QuoteForm({
                   aria-invalid={Boolean(e[`lines.${i}.amount`])}
                 />
               </Field>
-              <Field label="Currency" htmlFor={`currency-${i}`} error={e[`lines.${i}.currency`]}>
+              <Field label={t("Currency")} htmlFor={`currency-${i}`} error={e[`lines.${i}.currency`]}>
                 <Select
                   id={`currency-${i}`}
                   value={line.currency}
@@ -97,6 +113,19 @@ export function QuoteForm({
                 </Select>
               </Field>
             </div>
+            <Field label={t("Covers")} htmlFor={`category-${i}`}>
+              <Select
+                id={`category-${i}`}
+                value={line.category}
+                onChange={(ev) => update(i, { category: ev.target.value as QuoteCategory })}
+              >
+                {QUOTE_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {t(QUOTE_CATEGORY_LABELS[c])}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <div className="flex items-center justify-between">
               <label className="flex min-h-11 items-center gap-3 text-sm">
                 <input
@@ -105,17 +134,17 @@ export function QuoteForm({
                   onChange={(ev) => update(i, { gstIncluded: ev.target.checked })}
                   className="h-5 w-5 accent-[var(--accent)]"
                 />
-                GST included
+                {t("GST included")}
               </label>
               {lines.length > 1 ? (
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setLines((prev) => prev.filter((_, idx) => idx !== i))}
-                  aria-label={`Remove charge ${i + 1}`}
+                  aria-label={t("Remove charge {n}", { n: i + 1 })}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden />
-                  Remove
+                  {t("Remove")}
                 </Button>
               ) : null}
             </div>
@@ -130,25 +159,25 @@ export function QuoteForm({
       {lines.length < 20 ? (
         <Button type="button" variant="outline" onClick={() => setLines((prev) => [...prev, blankLine()])}>
           <Plus className="h-4 w-4" aria-hidden />
-          Add charge
+          {t("Add charge")}
         </Button>
       ) : null}
 
       <div className="rounded-xl bg-muted p-3 text-sm" aria-live="polite">
-        <p className="font-medium">Total</p>
+        <p className="font-medium">{t("Total")}</p>
         {totals.length === 0 ? (
-          <p className="text-muted-foreground">Add an amount to see the total.</p>
+          <p className="text-muted-foreground">{t("Add an amount to see the total.")}</p>
         ) : (
           <ul>
-            {totals.map((t) => (
-              <li key={t.currency}>{formatMoney(t.minor, t.currency)}</li>
+            {totals.map((tot) => (
+              <li key={tot.currency}>{formatMoney(tot.minor, tot.currency)}</li>
             ))}
           </ul>
         )}
-        <p className="mt-1 text-xs text-muted-foreground">Totals are shown per currency. No conversion.</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t("Totals are shown per currency. No conversion.")}</p>
       </div>
 
-      <Field label="Quote valid until" htmlFor="validUntil" error={e.validUntil}>
+      <Field label={t("Quote valid until")} htmlFor="validUntil" error={e.validUntil}>
         <Input
           id="validUntil"
           name="validUntil"
@@ -158,7 +187,7 @@ export function QuoteForm({
           aria-invalid={Boolean(e.validUntil)}
         />
       </Field>
-      <Field label="Notes (optional)" htmlFor="notes" error={e.notes}>
+      <Field label={t("Notes (optional)")} htmlFor="notes" error={e.notes}>
         <Textarea id="notes" name="notes" defaultValue={initialNotes ?? ""} aria-invalid={Boolean(e.notes)} />
       </Field>
 
@@ -168,7 +197,7 @@ export function QuoteForm({
         </p>
       ) : null}
       <Button type="submit" variant="accent" size="full" disabled={pending}>
-        {pending ? "Saving…" : quoteId ? "Save changes" : "Send sealed quote"}
+        {pending ? t("Saving…") : quoteId ? t("Save changes") : t("Send sealed quote")}
       </Button>
     </form>
   );

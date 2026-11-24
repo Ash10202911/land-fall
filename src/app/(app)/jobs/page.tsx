@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FilePlus2 } from "lucide-react";
+import { FilePlus2, Lock, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/card";
 import { Select } from "@/components/ui/form";
@@ -12,23 +12,72 @@ import { MODES } from "@/lib/domain";
 import { actionsFor, buildActionQueue, buildJobScorecard } from "@/lib/dashboard";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isNewJob } from "@/lib/mode";
-import { getSeenAt, getViewMode } from "@/lib/view-mode";
+import { getSavedMode, getSeenAt, getViewMode } from "@/lib/view-mode";
+import { ModeChooser } from "./mode-chooser";
 import { markJobsSeen } from "../mode-actions";
+import { getT } from "@/lib/i18n/server";
+import { msg } from "@/lib/i18n";
 
 export const metadata = { title: "Jobs" };
 
-function Heading({ eyebrow, note }: { eyebrow: string; note: string }) {
+async function Heading({ eyebrow, note }: { eyebrow: string; note: string }) {
+  const t = await getT();
   return (
     <div>
       <p className="text-sm font-semibold text-accent">{eyebrow}</p>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Jobs</h1>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("Jobs")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{note}</p>
+    </div>
+  );
+}
+
+const STEPS = [
+  { icon: FilePlus2, title: msg("Request a quote"), body: msg("Route, cargo and Incoterm in about 30 seconds. Your street address stays private.") },
+  { icon: Lock, title: msg("Forwarders send sealed quotes"), body: msg("Verified ANZ forwarders quote. Only you see the prices.") },
+  { icon: Trophy, title: msg("Compare and award"), body: msg("Line by line. Contact details unlock for you and the winner only.") },
+];
+
+/** Shown to a requester with no jobs yet: what happens next, and one clear action. */
+async function RequesterWelcome() {
+  const t = await getT();
+  return (
+    <div className="overflow-hidden rounded-[22px] border border-border bg-card shadow-card">
+      <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center">
+        <div className="space-y-3">
+          <h3 className="text-2xl font-bold tracking-tight">{t("Get sealed quotes from verified ANZ forwarders")}</h3>
+          <p className="text-muted-foreground">
+            {t("Post your first request and it appears on the job board of every forwarder watching that lane.")}
+          </p>
+          <Link
+            href="/post"
+            className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground"
+          >
+            <FilePlus2 className="h-4 w-4" aria-hidden />
+            {t("Request your first quote")}
+          </Link>
+        </div>
+        <ol className="grid gap-3 sm:grid-cols-3">
+          {STEPS.map(({ icon: Icon, title, body }, i) => (
+            <li key={title} className="rounded-2xl border border-border bg-sea-soft p-4">
+              <span className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-card text-sea-ink shadow-card" aria-hidden>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="text-xs font-bold text-sea-ink">{t("Step {n}", { n: i + 1 })}</span>
+              </span>
+              <p className="mt-3 font-bold">{t(title)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t(body)}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   );
 }
 
 /** Requester mode: jobs my company posted, with the quotes coming in. */
 async function RequesterView({ company, now }: { company: Company; now: Date }) {
+  const t = await getT();
   const supabase = await createClient();
   const [{ data }, dash] = await Promise.all([
     supabase
@@ -53,6 +102,7 @@ async function RequesterView({ company, now }: { company: Company; now: Date }) 
       myCompanyId: company.id,
       now,
       limit: 50,
+      tr: t,
     }),
     "requester",
   );
@@ -66,17 +116,17 @@ async function RequesterView({ company, now }: { company: Company; now: Date }) 
           className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
         >
           <FilePlus2 className="h-4 w-4" aria-hidden />
-          Request a quote
+          {t("Request a quote")}
         </Link>
       </div>
       <ActionList items={actions} />
       <JobScorecardView s={buildJobScorecard(dash.myJobs, now)} />
       <section aria-labelledby="my-jobs-heading" className="space-y-3">
         <h2 id="my-jobs-heading" className="text-lg font-semibold tracking-tight">
-          Your requests
+          {t("Your requests")}
         </h2>
         {mine.length === 0 ? (
-          <EmptyState title="You have not requested a quote yet" body="Use Request quote to ask forwarders for sealed quotes." />
+          <RequesterWelcome />
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
             {mine.map(({ job, quoteCount }) => (
@@ -105,6 +155,7 @@ async function QuoterView({
   mode?: string;
   onlyNew: boolean;
 }) {
+  const t = await getT();
   const supabase = await createClient();
   const destId = Number.parseInt(dest ?? "", 10);
   const modeFilter = MODES.find((m) => m === mode);
@@ -144,35 +195,33 @@ async function QuoterView({
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-primary p-3 pl-4 text-primary-foreground" role="status">
           <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-cyan-300 motion-reduce:animate-none" aria-hidden />
           <p className="min-w-0 flex-1 text-sm">
-            <strong className="text-cyan-200">
-              {newCount} new {newCount === 1 ? "job" : "jobs"}
-            </strong>{" "}
-            since your last visit
+            <strong className="text-cyan-200">{t.plural(newCount, "{n} new job", "{n} new jobs")}</strong>{" "}
+            {t("since your last visit")}
           </p>
           {!onlyNew ? (
             <Link href="/jobs?new=1" className="inline-flex min-h-10 items-center rounded-xl bg-cyan-300 px-3 text-sm font-bold text-primary">
-              Show new
+              {t("Show new")}
             </Link>
           ) : null}
           <form action={markJobsSeen}>
             <button type="submit" className="min-h-10 rounded-xl border border-white/30 px-3 text-sm font-semibold">
-              Mark seen
+              {t("Mark seen")}
             </button>
           </form>
         </div>
       ) : null}
 
       <form method="get" className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_9rem_auto]">
-        <Select name="dest" defaultValue={Number.isInteger(destId) ? String(destId) : ""} aria-label="Destination port">
-          <option value="">All destinations</option>
+        <Select name="dest" defaultValue={Number.isInteger(destId) ? String(destId) : ""} aria-label={t("Destination port")}>
+          <option value="">{t("All destinations")}</option>
           {(ports ?? []).map((p) => (
             <option key={p.id} value={p.id}>
               {p.name} ({p.code})
             </option>
           ))}
         </Select>
-        <Select name="mode" defaultValue={modeFilter ?? ""} aria-label="Mode">
-          <option value="">All modes</option>
+        <Select name="mode" defaultValue={modeFilter ?? ""} aria-label={t("Mode")}>
+          <option value="">{t("All modes")}</option>
           {MODES.map((m) => (
             <option key={m} value={m}>
               {m}
@@ -181,11 +230,11 @@ async function QuoterView({
         </Select>
         <div className="flex gap-2">
           <Button type="submit" variant="default" className="flex-1">
-            Filter
+            {t("Filter")}
           </Button>
           {filtered ? (
             <Link href="/jobs" className="inline-flex min-h-11 items-center rounded-xl border border-input bg-card px-4 text-sm">
-              Clear
+              {t("Clear")}
             </Link>
           ) : null}
         </div>
@@ -193,7 +242,7 @@ async function QuoterView({
 
       {jobs.length === 0 ? (
         <EmptyState
-          title={filtered ? "No jobs match those filters" : "No open jobs right now"}
+          title={filtered ? t("No jobs match those filters") : t("No open jobs right now")}
           body={filtered ? "Try a different destination or mode." : "New jobs from other companies appear here, newest first."}
         />
       ) : (
@@ -215,6 +264,7 @@ export default async function JobsPage({
   searchParams: Promise<{ dest?: string; mode?: string; new?: string }>;
 }) {
   const me = await requireMember();
+  if (!(await getSavedMode())) return <ModeChooser />;
   const viewMode = await getViewMode(me.company);
   const { dest, mode, new: onlyNew } = await searchParams;
   const now = new Date();

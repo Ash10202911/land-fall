@@ -1,4 +1,5 @@
 import { formatTotals } from "@/lib/domain";
+import { msg } from "@/lib/i18n";
 
 export type QuoteLineRow = {
   id: string;
@@ -6,6 +7,7 @@ export type QuoteLineRow = {
   amount_minor: number | string;
   currency: string;
   gst_included: boolean;
+  category: string;
 };
 
 export type QuoteRow = {
@@ -24,7 +26,7 @@ export type QuoteRow = {
 
 export const QUOTE_SELECT = `
   id, job_id, company_id, created_by, valid_until, notes, status, created_at, updated_at,
-  lines:quote_lines(id, charge_name, amount_minor, currency, gst_included),
+  lines:quote_lines(id, charge_name, amount_minor, currency, gst_included, category),
   company:companies(id, name, country, trust_level)
 `;
 
@@ -39,8 +41,8 @@ export function quoteTotal(q: Pick<QuoteRow, "lines">): string {
 }
 
 export const QUOTE_STATUS_LABEL: Record<QuoteRow["status"], string> = {
-  sent: "Sent",
-  withdrawn: "Withdrawn",
-  won: "Won",
-  lost: "Lost",
+  sent: msg("Sent"),
+  withdrawn: msg("Withdrawn"),
+  won: msg("Won"),
+  lost: msg("Lost"),
 };

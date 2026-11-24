@@ -142,3 +142,28 @@ update public.jobs set status = 'awarded', awarded_quote_id = 'd0000000-0000-400
 
 insert into public.job_delivery_addresses (job_id, street) values
   ('b0000000-0000-4000-8000-000000000006', '14 Example Road');
+
+-- Lane alerts and rate cards for Harbour Freight (fwd1), so the demo shows them straight away.
+insert into public.lane_alerts (id, company_id, created_by, origin_country, destination_port_id, modes, destination_only, frequency) values
+  ('e0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000004',
+   'China', (select id from public.ports where code = 'AUSYD'), array['FCL', 'LCL'], true, 'instant');
+insert into public.lane_alerts (id, company_id, created_by, origin_port_id, destination_port_id, modes, destination_only, frequency) values
+  ('e0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000004',
+   (select id from public.ports where code = 'INNSA'), (select id from public.ports where code = 'AUSYD'), array['FCL'], false, 'daily');
+
+insert into public.rate_cards (id, company_id, created_by, name, destination_port_id, currency, valid_to) values
+  ('f0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000004',
+   'Port Botany destination charges', (select id from public.ports where code = 'AUSYD'), 'AUD', current_date + 120),
+  ('f0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000004',
+   'Auckland air handling and cartage', (select id from public.ports where code = 'NZAKL'), 'NZD', current_date + 120);
+
+insert into public.rate_card_charges (rate_card_id, position, kind, name, category, basis, amount_minor, gst_included, postcode_from, postcode_to, unload_type) values
+  ('f0000000-0000-4000-8000-000000000001', 0, 'charge', 'Port service charge (THC)', 'destination', 'per_40ft', 16500, true, null, null, null),
+  ('f0000000-0000-4000-8000-000000000001', 1, 'charge', 'Delivery order fee', 'destination', 'per_job', 9500, true, null, null, null),
+  ('f0000000-0000-4000-8000-000000000001', 2, 'charge', 'Customs entry', 'customs', 'per_job', 12000, true, null, null, null),
+  ('f0000000-0000-4000-8000-000000000001', 3, 'zone', 'Zone 1 inner metro', 'delivery', 'per_container', 42000, true, 2000, 2050, null),
+  ('f0000000-0000-4000-8000-000000000001', 4, 'zone', 'Zone 2 western Sydney', 'delivery', 'per_container', 56000, true, 2140, 2170, null),
+  ('f0000000-0000-4000-8000-000000000001', 5, 'charge', 'Side-loader', 'delivery', 'per_container', 8000, true, null, null, 'side_loader'),
+  ('f0000000-0000-4000-8000-000000000002', 0, 'charge', 'Airport handling', 'destination', 'per_kg', 40, true, null, null, null),
+  ('f0000000-0000-4000-8000-000000000002', 1, 'zone', 'Auckland east', 'delivery', 'per_job', 18000, true, 2010, 2019, null),
+  ('f0000000-0000-4000-8000-000000000002', 2, 'charge', 'Tailgate truck', 'delivery', 'per_job', 4500, true, null, null, 'tailgate');

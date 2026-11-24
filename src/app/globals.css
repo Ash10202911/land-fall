@@ -57,7 +57,8 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  /* Geist has no Chinese glyphs, so name good system Chinese fonts before the generic fallback. */
+  --font-sans: var(--font-geist-sans), system-ui, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   --shadow-card: var(--shadow-card);
   --shadow-lift: var(--shadow-lift);
 }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CURRENCIES, parseMoneyToMinor } from "@/lib/domain";
+import { QUOTE_CATEGORIES } from "@/lib/compare";
 
 export const quoteLineSchema = z.object({
   chargeName: z
@@ -20,6 +21,7 @@ export const quoteLineSchema = z.object({
     }),
   currency: z.enum(CURRENCIES, { error: "Choose a currency" }),
   gstIncluded: z.boolean().default(false),
+  category: z.enum(QUOTE_CATEGORIES).default("other"),
 });
 
 export const quoteSchema = z.object({
@@ -51,6 +53,7 @@ export function linesToRpc(lines: QuoteInput["lines"]) {
     amount_minor: l.amount,
     currency: l.currency,
     gst_included: l.gstIncluded,
+    category: l.category,
   }));
 }
 

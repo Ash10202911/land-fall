@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { admin, createAdminUser, emailFor, expectNoHorizontalScroll, runId, signInUrl, watchErrors } from "./support";
+import { admin, chooseMode, createAdminUser, emailFor, expectNoHorizontalScroll, runId, signInUrl, watchErrors } from "./support";
 
 const errors: string[] = [];
 const AGENT = `E2E Agent ${runId}`;
@@ -27,6 +27,7 @@ async function onboard(page: Page, company: string, country: string, role: "agen
   await page.getByLabel("Your company is a").selectOption(role);
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/jobs$/);
+  await chooseMode(page, role === "agent" ? "requester" : "quoter");
   await expect(page.getByRole("heading", { name: "Jobs", exact: true })).toBeVisible();
 }
 

@@ -15,7 +15,13 @@ describe("quoteSchema", () => {
       amount_minor: 120050,
       currency: "USD",
       gst_included: false,
+      category: "other",
     });
+  });
+  it("keeps what each line covers, and rejects an unknown category", () => {
+    const r = quoteSchema.parse({ validUntil: "2026-07-01", lines: [{ ...line, category: "customs" }] });
+    expect(linesToRpc(r.lines)[0].category).toBe("customs");
+    expect(quoteSchema.safeParse({ validUntil: "2026-07-01", lines: [{ ...line, category: "bogus" }] }).success).toBe(false);
   });
   it("needs at least one line and rejects bad amounts and currencies", () => {
     expect(quoteSchema.safeParse({ validUntil: "2026-07-01", lines: [] }).success).toBe(false);

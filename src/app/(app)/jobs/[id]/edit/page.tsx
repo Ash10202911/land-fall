@@ -5,12 +5,14 @@ import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
 import { isJobClosed } from "@/lib/domain";
 import { EditJobForm } from "./edit-job-form";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = { title: "Edit job" };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function EditJobPage({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getT();
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const me = await requireMember();
@@ -34,12 +36,12 @@ export default async function EditJobPage({ params }: { params: Promise<{ id: st
     <div className="space-y-4">
       <Link href={`/jobs/${id}`} className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" aria-hidden />
-        Back to job
+        {t("Back to job")}
       </Link>
-      <h1 className="text-xl font-semibold">Edit job</h1>
+      <h1 className="text-xl font-semibold">{t("Edit job")}</h1>
       {closed ? (
         <p role="status" className="rounded-md bg-muted p-3 text-sm">
-          This job is closed and can no longer be edited.
+          {t("This job is closed and can no longer be edited.")}
         </p>
       ) : (
         <EditJobForm

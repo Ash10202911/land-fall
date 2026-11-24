@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireMember } from "@/lib/auth";
+import { notifyLaneAlertsForJob } from "@/lib/lane-notifications";
 import { fieldErrors, type FormState } from "@/lib/validation/auth";
 import { checkJobDates, deadlineFor, jobSchema } from "@/lib/validation/job";
 
@@ -97,6 +98,8 @@ export async function postJob(_prev: JobFormState, formData: FormData): Promise<
   if (error || !data) {
     return { message: "We could not post your request. Check your details and try again." };
   }
+  // Email forwarders watching this lane. Never throws, and sends public job details only.
+  await notifyLaneAlertsForJob(data.id);
   revalidatePath("/jobs");
   redirect(`/jobs/${data.id}`);
 }

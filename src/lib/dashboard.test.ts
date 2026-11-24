@@ -90,7 +90,13 @@ describe("buildActionQueue", () => {
     const later = job({ id: "later", deadline_at: at(72) });
     const items = buildActionQueue({ ...base, myJobs: [soon, dead, later] });
     expect(items.map((i) => i.id)).toEqual(["closing-soon", "expired-dead"]);
-    expect(items[0].href).toBe("/jobs/soon/edit");
+    // Inside the last 12 hours the job page offers a one-tap extension.
+    expect(items[0].href).toBe("/jobs/soon");
+  });
+
+  it("sends a quiet job with 12 to 24 hours left to the edit page, where the deadline can be moved", () => {
+    const items = buildActionQueue({ ...base, myJobs: [job({ id: "mid", deadline_at: at(20) })] });
+    expect(items[0]).toMatchObject({ id: "closing-mid", href: "/jobs/mid/edit" });
   });
 
   it("flags quotes that expire within three days, only while the job is open", () => {

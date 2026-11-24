@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { admin, expectNoHorizontalScroll, runId, signInUrl, watchErrors } from "./support";
+import { admin, chooseMode, expectNoHorizontalScroll, runId, signInUrl, watchErrors } from "./support";
 
 // Seeded demo companies (local database only):
 //   agent@demo.test  Shenzhen Star Logistics, Verified agent: posts the Shenzhen and Ningbo jobs.
@@ -35,15 +35,23 @@ test("a job with a very long cargo description does not widen the board on a pho
 
   await page.goto(await signInUrl("fwd1@demo.test"));
   await expect(page).toHaveURL(/\/jobs$/);
+  await chooseMode(page, "quoter");
   await expect(page.getByText(`E2E long ${runId}`).first()).toBeAttached();
   expect(await expectNoHorizontalScroll(page)).toBe(0);
 });
 
-test("an agent lands in Requester mode, switches to Quoter and the choice persists", async ({ page }) => {
+test("everyone starts on the same screen, picks Requester, switches to Quoter and the choice persists", async ({ page }) => {
   const errors: string[] = [];
   watchErrors(page, errors, "agent");
   await page.goto(await signInUrl("agent@demo.test"));
   await expect(page).toHaveURL(/\/jobs$/);
+
+  // Nobody is sorted by company type: the first screen asks what they want to do.
+  await expect(page.getByRole("heading", { name: "What would you like to do?" })).toBeVisible();
+  await expect(page.getByTestId("choose-requester")).toBeVisible();
+  await expect(page.getByTestId("choose-quoter")).toBeVisible();
+  expect(await expectNoHorizontalScroll(page)).toBe(0);
+  await page.getByTestId("choose-requester").click();
 
   const nav = page.getByRole("navigation", { name: "Main" });
   await expect(page.getByRole("radio", { name: "Requester" })).toHaveAttribute("aria-checked", "true");
@@ -75,11 +83,13 @@ test("an agent lands in Requester mode, switches to Quoter and the choice persis
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
-test("a forwarder lands in Quoter mode and sees only its own jobs as a Requester", async ({ page }) => {
+test("a forwarder can pick Quoter, and sees only its own jobs as a Requester", async ({ page }) => {
   const errors: string[] = [];
   watchErrors(page, errors, "forwarder");
   await page.goto(await signInUrl("fwd1@demo.test"));
   await expect(page).toHaveURL(/\/jobs$/);
+  await expect(page.getByRole("heading", { name: "What would you like to do?" })).toBeVisible();
+  await page.getByTestId("choose-quoter").click();
   await expect(page.getByRole("radio", { name: "Quoter" })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByText("Flat-pack timber furniture, palletised").first()).toBeVisible();
 

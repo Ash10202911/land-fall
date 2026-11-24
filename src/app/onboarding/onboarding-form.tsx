@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/form";
 import { completeOnboarding } from "./actions";
 import type { FormState } from "@/lib/validation/auth";
+import { useT } from "@/components/i18n-provider";
 
 export function OnboardingForm() {
+  const t = useT();
   const [state, action, pending] = useActionState<FormState, FormData>(completeOnboarding, {});
   const e = state.errors ?? {};
   return (
     <form action={action} className="space-y-4" noValidate>
-      <Field label="Company name" htmlFor="companyName" error={e.companyName}>
+      <Field label={t("Company name")} htmlFor="companyName" error={e.companyName}>
         <Input
           id="companyName"
           name="companyName"
@@ -20,7 +22,7 @@ export function OnboardingForm() {
           required
         />
       </Field>
-      <Field label="Country" htmlFor="country" error={e.country}>
+      <Field label={t("Country")} htmlFor="country" error={e.country}>
         <Input
           id="country"
           name="country"
@@ -29,13 +31,13 @@ export function OnboardingForm() {
           required
         />
       </Field>
-      <Field label="Your company is a" htmlFor="role" error={e.role}>
+      <Field label={t("Your company is a")} htmlFor="role" error={e.role}>
         <Select id="role" name="role" defaultValue="" aria-invalid={Boolean(e.role)} required>
           <option value="" disabled>
-            Choose one
+            {t("Choose one")}
           </option>
-          <option value="agent">Overseas agent (posts jobs)</option>
-          <option value="forwarder">Australia or New Zealand forwarder (sends quotes)</option>
+          <option value="agent">{t("Overseas agent (posts jobs)")}</option>
+          <option value="forwarder">{t("Australia or New Zealand forwarder (sends quotes)")}</option>
         </Select>
       </Field>
       {state.message ? (
@@ -44,7 +46,7 @@ export function OnboardingForm() {
         </p>
       ) : null}
       <Button type="submit" size="full" disabled={pending}>
-        {pending ? "Saving…" : "Continue"}
+        {pending ? t("Saving…") : t("Continue")}
       </Button>
     </form>
   );

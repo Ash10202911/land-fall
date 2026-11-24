@@ -6,6 +6,7 @@
  * Nothing here reads another company's quotes, so sealed quotes stay sealed.
  */
 import { totalsByCurrency } from "@/lib/domain";
+import { tEn, type Translator } from "@/lib/i18n";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -61,7 +62,8 @@ export type BoardJob = {
   flag_bmsb: boolean;
 };
 
-const route = (j: { origin: PortLite; destination: PortLite }) => `${j.origin.name} to ${j.destination.name}`;
+const route = (j: { origin: PortLite; destination: PortLite }, tr: Translator = tEn) =>
+  tr("{origin} to {destination}", { origin: j.origin.name, destination: j.destination.name });
 const ms = (iso: string) => new Date(iso).getTime();
 const liveQuotes = (j: MyJob) => j.quotes.filter((q) => q.status !== "withdrawn");
 
@@ -75,16 +77,16 @@ export function median(values: number[]): number | null {
 export const pct = (part: number, whole: number): number | null =>
   whole === 0 ? null : Math.round((part / whole) * 100);
 
-export function formatHours(h: number | null): string {
-  if (h === null) return "No data yet";
-  if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`;
-  if (h < 48) return `${Math.round(h * 10) / 10} h`;
-  return `${Math.round(h / 24)} days`;
+export function formatHours(h: number | null, tr: Translator = tEn): string {
+  if (h === null) return tr("No data yet");
+  if (h < 1) return tr("{n} min", { n: Math.max(1, Math.round(h * 60)) });
+  if (h < 48) return tr("{n} h", { n: Math.round(h * 10) / 10 });
+  return tr("{n} days", { n: Math.round(h / 24) });
 }
 
-function timeLeft(deadline: string, now: Date): string {
+function timeLeft(deadline: string, now: Date, tr: Translator = tEn): string {
   const h = Math.max(0, (ms(deadline) - now.getTime()) / HOUR);
-  return h < 1 ? "under an hour" : h < 48 ? `${Math.round(h)} h` : `${Math.round(h / 24)} days`;
+  return h < 1 ? tr("under an hour") : h < 48 ? tr("{n} h", { n: Math.round(h) }) : tr("{n} days", { n: Math.round(h / 24) });
 }
 
 /** The total of a quote when it uses a single currency, otherwise null (never mix currencies). */
@@ -111,8 +113,11 @@ export function buildActionQueue(input: {
   myCompanyId: string;
   now: Date;
   limit?: number;
+  /** Writes the titles and details in the person's language. English when not given. */
+  tr?: Translator;
 }): ActionItem[] {
   const { isVerified, myJobs, myQuotes, openJobs, myCompanyId, now } = input;
+  const tr = input.tr ?? tEn;
   const items: ActionItem[] = [];
   const t = now.getTime();
 
@@ -124,8 +129,8 @@ export function buildActionQueue(input: {
       id: "get-verified",
         side: "requester",
       tone: "danger",
-      title: `Get verified to award ${waitingQuotes} ${waitingQuotes === 1 ? "quote" : "quotes"}`,
-      detail: `${waiting.length} of your ${waiting.length === 1 ? "job has" : "jobs have"} quotes waiting. Only Verified companies can award.`,
+      title: tr.plural(waitingQuotes, "Get verified to award {n} quote", "Get verified to award {n} quotes"),
+      detail: tr.plural(waiting.length, "{n} of your job has quotes waiting. Only Verified companies can award.", "{n} of your jobs have quotes waiting. Only Verified companies can award."),
       href: "/profile",
     });
   } else {
@@ -135,8 +140,8 @@ export function buildActionQueue(input: {
         id: `award-${j.id}`,
         side: "requester",
         tone: "success",
-        title: `${n} ${n === 1 ? "quote" : "quotes"} ready to compare`,
-        detail: `${route(j)}. ${ms(j.deadline_at) > t ? `Quotes close in ${timeLeft(j.deadline_at, now)}.` : "Quoting has closed. Choose a winner."}`,
+        title: tr.plural(n, "{n} quote ready to compare", "{n} quotes ready to compare"),
+        detail: `${route(j, tr)}. ${ms(j.deadline_at) > t ? tr("Quotes close in {time}.", { time: timeLeft(j.deadline_at, now, tr) }) : tr("Quoting has closed. Choose a winner.")}`,
         href: `/jobs/${j.id}`,
       });
     }
@@ -151,17 +156,18 @@ export function buildActionQueue(input: {
         id: `closing-${j.id}`,
         side: "requester",
         tone: "warning",
-        title: "Closing soon with no quotes",
-        detail: `${route(j)}. Closes in ${timeLeft(j.deadline_at, now)}. Extend the deadline to give forwarders more time.`,
-        href: `/jobs/${j.id}/edit`,
+        title: tr("Closing soon with no quotes"),
+        detail: `${route(j, tr)}. ${tr("Closes in {time}. Extend the deadline to give forwarders more time.", { time: timeLeft(j.deadline_at, now, tr) })}`,
+        // Inside the last 12 hours the job page offers a one-tap extension; earlier, the edit page does.
+        href: left <= 12 * HOUR ? `/jobs/${j.id}` : `/jobs/${j.id}/edit`,
       });
     } else if (left <= 0 && t - ms(j.deadline_at) <= 14 * DAY) {
       items.push({
         id: `expired-${j.id}`,
         side: "requester",
         tone: "neutral",
-        title: "No quotes received",
-        detail: `${route(j)}. The deadline passed with no quotes. Post it again with a longer deadline.`,
+        title: tr("No quotes received"),
+        detail: `${route(j, tr)}. ${tr("The deadline passed with no quotes. Post it again with a longer deadline.")}`,
         href: `/jobs/${j.id}`,
       });
     }
@@ -180,8 +186,8 @@ export function buildActionQueue(input: {
           id: `expiring-${q.id}`,
           side: "quoter",
           tone: "warning",
-          title: "Your quote expires soon",
-          detail: `${route(q.job)}. Valid until ${q.valid_until.split("-").reverse().join("/")}. Edit it to extend the validity.`,
+          title: tr("Your quote expires soon"),
+          detail: `${route(q.job, tr)}. ${tr("Valid until {date}. Edit it to extend the validity.", { date: q.valid_until.split("-").reverse().join("/") })}`,
           href: `/jobs/${q.job_id}`,
         });
       }
@@ -191,8 +197,8 @@ export function buildActionQueue(input: {
         id: `won-${q.id}`,
           side: "quoter",
         tone: "success",
-        title: "You won a job",
-        detail: `${route(q.job)}. The requester's contact details are on the job page.`,
+        title: tr("You won a job"),
+        detail: `${route(q.job, tr)}. ${tr("The requester's contact details are on the job page.")}`,
         href: `/jobs/${q.job_id}`,
       });
     }
@@ -210,8 +216,8 @@ export function buildActionQueue(input: {
       id: `closing-open-${j.id}`,
           side: "quoter",
       tone: "neutral",
-      title: `${j.mode} job closing in ${timeLeft(j.deadline_at, now)}`,
-      detail: `${route(j)}. You have not quoted this job yet.`,
+      title: tr("{mode} job closing in {time}", { mode: j.mode, time: timeLeft(j.deadline_at, now, tr) }),
+      detail: `${route(j, tr)}. ${tr("You have not quoted this job yet.")}`,
       href: `/jobs/${j.id}`,
     });
   }

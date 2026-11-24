@@ -12,7 +12,8 @@ import { MODES } from "@/lib/domain";
 import { actionsFor, buildActionQueue, buildJobScorecard } from "@/lib/dashboard";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isNewJob } from "@/lib/mode";
-import { getSeenAt, getViewMode } from "@/lib/view-mode";
+import { getSavedMode, getSeenAt, getViewMode } from "@/lib/view-mode";
+import { ModeChooser } from "./mode-chooser";
 import { markJobsSeen } from "../mode-actions";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n";
@@ -263,6 +264,7 @@ export default async function JobsPage({
   searchParams: Promise<{ dest?: string; mode?: string; new?: string }>;
 }) {
   const me = await requireMember();
+  if (!(await getSavedMode())) return <ModeChooser />;
   const viewMode = await getViewMode(me.company);
   const { dest, mode, new: onlyNew } = await searchParams;
   const now = new Date();

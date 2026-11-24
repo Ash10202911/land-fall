@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Briefcase, FilePlus2, FileText, Inbox, User, type LucideIcon } from "lucide-react";
 import { useT } from "@/components/i18n-provider";
-import { LanguageToggle } from "@/components/language-toggle";
 import { ModeSwitch } from "@/components/mode-switch";
 import { navItemsFor, type NavIcon, type ViewMode } from "@/lib/mode";
 import { cn } from "@/lib/utils";
@@ -106,7 +105,7 @@ export function TopNav({ mode }: { mode: ViewMode }) {
             })}
           </ul>
         </nav>
-        <LanguageToggle />
+        {/* Language switch hidden until the Chinese dictionary is written. */}
       </div>
     </header>
   );

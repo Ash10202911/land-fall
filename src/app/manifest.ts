@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "CargoTribe",
     short_name: "CargoTribe",
-    description: "Sealed freight quotes for overseas agents and ANZ forwarders.",
+    description: "Sealed freight quotes for freight agents and forwarders, into and out of Australia and New Zealand.",
     start_url: "/jobs",
     display: "standalone",
     background_color: "#f5f7fa",

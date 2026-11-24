@@ -2,5 +2,5 @@
 export const BRAND = {
   name: "CargoTribe",
   domain: "cargotribe.com.au",
-  tagline: "Sealed freight quotes for overseas agents and Australian and New Zealand forwarders.",
+  tagline: "Sealed freight quotes for freight agents and forwarders, into and out of Australia and New Zealand.",
 } as const;

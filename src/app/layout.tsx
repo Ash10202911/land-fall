@@ -13,7 +13,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: { default: "CargoTribe: sealed freight quotes", template: "%s | CargoTribe" },
   description:
-    "The community where overseas freight agents and Australian and New Zealand forwarders meet. Post a job, get sealed quotes, award the best one.",
+    "The community where freight agents and forwarders meet to move cargo into and out of Australia and New Zealand. Post a job, get sealed quotes, award the best one.",
   applicationName: "CargoTribe",
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],

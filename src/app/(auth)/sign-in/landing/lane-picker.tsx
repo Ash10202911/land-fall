@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Mail } from "lucide-react";
 
-const FROM = ["China", "India", "Vietnam", "Singapore", "Hong Kong"];
-const TO = ["Sydney", "Melbourne", "Brisbane", "Fremantle", "Auckland"];
+const FROM = ["China", "India", "Vietnam", "Australia", "New Zealand"];
+const TO = ["Sydney", "Melbourne", "Brisbane", "Auckland", "Shanghai", "Singapore"];
 const MODES = ["Sea, full container", "Sea, shared container", "Air"];
 
 function Pick({ options, value, onPick, label }: { options: string[]; value: string; onPick: (v: string) => void; label: string }) {

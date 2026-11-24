@@ -33,7 +33,7 @@ async function Heading({ eyebrow, note }: { eyebrow: string; note: string }) {
 
 const STEPS = [
   { icon: FilePlus2, title: msg("Request a quote"), body: msg("Route, cargo and Incoterm in about 30 seconds. Your street address stays private.") },
-  { icon: Lock, title: msg("Forwarders send sealed quotes"), body: msg("Verified ANZ forwarders quote. Only you see the prices.") },
+  { icon: Lock, title: msg("Forwarders send sealed quotes"), body: msg("Verified forwarders quote. Only you see the prices.") },
   { icon: Trophy, title: msg("Compare and award"), body: msg("Line by line. Contact details unlock for you and the winner only.") },
 ];
 
@@ -44,7 +44,7 @@ async function RequesterWelcome() {
     <div className="overflow-hidden rounded-[22px] border border-border bg-card shadow-card">
       <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center">
         <div className="space-y-3">
-          <h3 className="text-2xl font-bold tracking-tight">{t("Get sealed quotes from verified ANZ forwarders")}</h3>
+          <h3 className="text-2xl font-bold tracking-tight">{t("Get sealed quotes from verified forwarders")}</h3>
           <p className="text-muted-foreground">
             {t("Post your first request and it appears on the job board of every forwarder watching that lane.")}
           </p>

@@ -13,14 +13,14 @@ import { HeroVideo, VideoDemos } from "./landing/video-demos";
 export const metadata = {
   title: "Sign in or join",
   description:
-    "CargoTribe is where overseas freight agents and Australian and New Zealand forwarders meet. Post a job, get sealed quotes, award the best one.",
+    "The community where freight agents and forwarders meet to move cargo into and out of Australia and New Zealand. Post a job, get sealed quotes, award the best one.",
 };
 
 const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-brand", display: "swap" });
 const hand = Caveat({ subsets: ["latin"], variable: "--font-hand", display: "swap", weight: ["600"] });
 
 const AGENT_POINTS = [
-  { icon: Scale, text: "One request, many sealed quotes, compared line by line" },
+  { icon: Scale, text: "One request, many sealed quotes, compared line by line. Imports or exports" },
   { icon: MessagesSquare, text: "Ask and answer questions on a job in public, without handing out your phone number" },
   { icon: Repeat, text: "Repeat last month's job in one tap" },
   { icon: Handshake, text: "Award the one you trust. Contact details unlock for you and the winner only" },
@@ -91,7 +91,7 @@ export default async function SignInPage({
               Quotes shouldn&apos;t live in your inbox.
             </h1>
             <p className="mt-5 max-w-[44ch] text-lg leading-relaxed text-[#d8efff]">
-              CargoTribe is where agents who ship to Australia and New Zealand meet the forwarders who deliver. Post once. Compare in one place. Award with confidence.
+              CargoTribe is where freight agents and forwarders find each other, for cargo moving into or out of Australia and New Zealand. Post once. Compare in one place. Award with confidence.
             </p>
 
             <div id="sign-in" className="mt-8 max-w-md scroll-mt-6 rounded-3xl bg-white p-6 text-[#0b2f57] shadow-[0_24px_60px_-20px_rgba(4,24,48,0.55)]">
@@ -125,7 +125,7 @@ export default async function SignInPage({
 
       {/* A day on CargoTribe, tap through */}
       <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
-        <Heading note="Here is how a quote travels" sub="Two people, one container, five steps. Tap through, or just watch.">
+        <Heading note="Here is how a quote travels" sub="Two people, one container, five steps. Tap through, or just watch. It works the same the other way round: a forwarder in Australia posting a job to Shenzhen gets quotes from forwarders there.">
           From &ldquo;I have cargo&rdquo; to &ldquo;it&apos;s sorted&rdquo;
         </Heading>
         <div className="mt-10">
@@ -158,7 +158,7 @@ export default async function SignInPage({
       {/* Connection: forwarders get found by the right jobs */}
       <section className="bg-[#eaf5fe]">
         <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
-          <Heading note="Forwarders, this one is for you" sub="Tell us the lanes you work. When a matching job goes up, you hear about it straight away, and your quote is ready to go.">
+          <Heading note="Forwarders, this one is for you" sub="Tell us the lanes you work, in or out of Australia and New Zealand. When a matching job goes up, you hear about it straight away, and your quote is ready to go.">
             The right jobs find you
           </Heading>
           <div className="mt-10">
@@ -169,12 +169,12 @@ export default async function SignInPage({
 
       {/* The tribe */}
       <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
-        <Heading note="Two sides, one tribe" sub="Agents overseas know the cargo. Forwarders here know the port, the customs and the last mile. Any company can ask for quotes and send them, so you can be both.">
+        <Heading note="Two sides, one tribe" sub="Agents know the cargo and the customer. Forwarders know the port, the customs and the last mile. Any company can ask for quotes and send them, in either direction, so you can be both.">
           Built for people who move freight
         </Heading>
         <div className="mt-10 grid gap-5 lg:grid-cols-2">
           <div className="rounded-[2rem] bg-[#f4faff] p-6 ring-1 ring-[#dcebf7] sm:p-9">
-            <h3 className="text-xl font-extrabold">If you ship to Australia or New Zealand</h3>
+            <h3 className="text-xl font-extrabold">If you need cargo moved</h3>
             <ul className="mt-5 space-y-4">
               {AGENT_POINTS.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-start gap-3">
@@ -187,7 +187,7 @@ export default async function SignInPage({
             </ul>
           </div>
           <div className="rounded-[2rem] bg-[#0b3a6e] p-6 text-white sm:p-9">
-            <h3 className="text-xl font-extrabold">If you deliver here</h3>
+            <h3 className="text-xl font-extrabold">If you move cargo</h3>
             <ul className="mt-5 space-y-4">
               {FORWARDER_POINTS.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-start gap-3">

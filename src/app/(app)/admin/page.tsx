@@ -95,7 +95,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   <div>
                     <p className="font-semibold">{c.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {c.country} · {c.role === "agent" ? "Overseas agent" : "ANZ forwarder"} · joined{" "}
+                      {c.country} · {c.role === "agent" ? "Freight agent" : "Freight forwarder"} · joined{" "}
                       {formatDate(c.created_at)}
                     </p>
                     {websiteOf.get(c.id) ? (

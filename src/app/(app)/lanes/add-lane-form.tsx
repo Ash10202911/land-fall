@@ -31,7 +31,8 @@ export function AddLaneForm({ ports }: { ports: PortOption[] }) {
     }
   }, [state]);
 
-  const overseas = ports.filter((p) => !ANZ.includes(p.country));
+  // Any port can be an origin, so a forwarder here can watch exports as well as imports.
+  const overseas = ports;
   const countries = [...new Set(overseas.map((p) => p.country))].sort();
   const byCountry = (list: PortOption[]) => [...new Set(list.map((p) => p.country))].sort();
 

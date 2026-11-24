@@ -49,8 +49,8 @@ export function OnboardingForm() {
           <option value="" disabled>
             {t("Choose one")}
           </option>
-          <option value="agent">{t("Overseas agent (posts jobs)")}</option>
-          <option value="forwarder">{t("Australia or New Zealand forwarder (sends quotes)")}</option>
+          <option value="agent">{t("Freight agent or shipper")}</option>
+          <option value="forwarder">{t("Freight forwarder")}</option>
         </Select>
       </Field>
       {state.message ? (

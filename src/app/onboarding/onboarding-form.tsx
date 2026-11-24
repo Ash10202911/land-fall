@@ -31,6 +31,19 @@ export function OnboardingForm() {
           required
         />
       </Field>
+      <Field label={t("Company website")} htmlFor="website" error={e.website} hint={t("So we can check who you are before you are verified. For example acme.com")}>
+        <Input
+          id="website"
+          name="website"
+          type="text"
+          inputMode="url"
+          autoComplete="url"
+          autoCapitalize="none"
+          placeholder="acme.com"
+          aria-invalid={Boolean(e.website)}
+          required
+        />
+      </Field>
       <Field label={t("Your company is a")} htmlFor="role" error={e.role}>
         <Select id="role" name="role" defaultValue="" aria-invalid={Boolean(e.role)} required>
           <option value="" disabled>

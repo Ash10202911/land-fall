@@ -9,6 +9,7 @@ export async function completeOnboarding(_prev: FormState, formData: FormData): 
     companyName: formData.get("companyName"),
     country: formData.get("country"),
     role: formData.get("role"),
+    website: formData.get("website"),
   });
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
 
@@ -17,6 +18,7 @@ export async function completeOnboarding(_prev: FormState, formData: FormData): 
     p_company_name: parsed.data.companyName,
     p_country: parsed.data.country,
     p_role: parsed.data.role,
+    p_website: parsed.data.website,
   });
   if (error) {
     if (error.code === "23505") redirect("/jobs"); // already onboarded

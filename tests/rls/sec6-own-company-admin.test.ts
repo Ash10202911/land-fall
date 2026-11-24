@@ -107,12 +107,32 @@ describe("SEC-6 own company and admin only", () => {
     }
   });
 
+  it("keeps a company's website to itself and admins, and never lets the API write it", async () => {
+    await admin.from("company_sites").upsert({ company_id: alice.companyId, website: "https://alice-freight.example.com" });
+    const own = await alice.client.from("company_sites").select("website");
+    expect(own.data).toEqual([{ website: "https://alice-freight.example.com" }]);
+    const other = await bob.client.from("company_sites").select("website").eq("company_id", alice.companyId);
+    expect(other.data ?? []).toEqual([]);
+    const asAdmin = await adminUser.client.from("company_sites").select("website").eq("company_id", alice.companyId);
+    expect(asAdmin.data).toEqual([{ website: "https://alice-freight.example.com" }]);
+    const anon = anonClient();
+    expect((await anon.from("company_sites").select("website")).data ?? []).toEqual([]);
+    const write = await alice.client.from("company_sites").update({ website: "https://evil.example.com" }).eq("company_id", alice.companyId);
+    expect(write.error).not.toBeNull();
+    const row = await admin.from("company_sites").select("website").eq("company_id", alice.companyId).single();
+    expect(row.data?.website).toBe("https://alice-freight.example.com");
+  });
+
   it("lets a user onboard once and no more", async () => {
     const fresh = await makeUser({ companyId: undefined });
     await admin.from("profiles").update({ company_id: null }).eq("id", fresh.id);
-    const first = await fresh.client.rpc("onboard", { p_company_name: "Fresh Freight", p_country: "Australia", p_role: "forwarder" });
+    const noSite = await fresh.client.rpc("onboard", { p_company_name: "Fresh Freight", p_country: "Australia", p_role: "forwarder", p_website: "" });
+    expect(noSite.error, "a website is required").not.toBeNull();
+    const badSite = await fresh.client.rpc("onboard", { p_company_name: "Fresh Freight", p_country: "Australia", p_role: "forwarder", p_website: "javascript:alert(1)" });
+    expect(badSite.error, "only http(s) addresses are stored").not.toBeNull();
+    const first = await fresh.client.rpc("onboard", { p_company_name: "Fresh Freight", p_country: "Australia", p_role: "forwarder", p_website: "https://fresh-freight.example.com" });
     expect(first.error).toBeNull();
-    const second = await fresh.client.rpc("onboard", { p_company_name: "Another Co", p_country: "Australia", p_role: "agent" });
+    const second = await fresh.client.rpc("onboard", { p_company_name: "Another Co", p_country: "Australia", p_role: "agent", p_website: "https://another.example.com" });
     expect(second.error).not.toBeNull();
     const row = await admin.from("companies").select("trust_level, status").eq("id", first.data as string).single();
     expect(row.data).toEqual({ trust_level: "basic", status: "active" });

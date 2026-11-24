@@ -24,6 +24,7 @@ async function onboard(page: Page, company: string, country: string, role: "agen
   await expect(page).toHaveURL(/\/onboarding/);
   await page.getByLabel("Company name").fill(company);
   await page.getByLabel("Country").fill(country);
+  await page.getByLabel("Company website").fill("acme-freight.example.com");
   await page.getByLabel("Your company is a").selectOption(role);
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/jobs$/);

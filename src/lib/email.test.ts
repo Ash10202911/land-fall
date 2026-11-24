@@ -64,7 +64,7 @@ describe("sendEmail", () => {
   it("adds the footer with sender name and reply STOP", () => {
     const text = withFooter("Hello");
     expect(text.endsWith(EMAIL_FOOTER)).toBe(true);
-    expect(text).toContain("Sent by Southbound");
+    expect(text).toContain("Sent by CargoTribe");
     expect(text).toContain("reply STOP");
   });
 
@@ -88,7 +88,7 @@ describe("sendEmail", () => {
     const send = vi.fn().mockResolvedValue({ error: null });
     const result = await sendEmail(
       { to: "person@example.com", subject: "Hi", text: "Body" },
-      { apiKey: "re_test", from: "Southbound <no-reply@example.com>", createResend: async () => ({ emails: { send } }) },
+      { apiKey: "re_test", from: "CargoTribe <no-reply@example.com>", createResend: async () => ({ emails: { send } }) },
     );
     expect(result).toEqual({ ok: true, provider: "resend" });
     expect(send).toHaveBeenCalledOnce();

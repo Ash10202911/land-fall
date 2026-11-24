@@ -32,12 +32,12 @@ export default async function ProfilePage() {
           {company.status === "suspended" ? <Badge tone="danger">{t("Suspended")}</Badge> : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          {company.country} · {company.role === "agent" ? t("Overseas agent") : t("ANZ forwarder")}
+          {company.country} · {company.role === "agent" ? t("Freight agent") : t("Freight forwarder")}
         </p>
         {website ? <p className="text-sm text-muted-foreground">{website}</p> : null}
         {company.trust_level !== "verified" ? (
           <p className="text-sm">
-            {t("Get verified to award jobs. An admin reviews companies by hand; contact the Southbound team to start.")}
+            {t("Get verified to award jobs. An admin reviews companies by hand; contact the CargoTribe team to start.")}
           </p>
         ) : null}
         <p className="text-sm text-muted-foreground">{t("Signed in as {email}", { email: me.email })}</p>

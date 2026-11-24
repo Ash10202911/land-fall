@@ -11,15 +11,15 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Southbound", template: "%s | Southbound" },
+  title: { default: "CargoTribe: sealed freight quotes", template: "%s | CargoTribe" },
   description:
-    "A quote board for freight. Overseas agents post jobs, Australian and New Zealand forwarders send sealed quotes.",
-  applicationName: "Southbound",
+    "The community where freight agents and forwarders meet to move cargo into and out of Australia and New Zealand. Post a job, get sealed quotes, award the best one.",
+  applicationName: "CargoTribe",
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
-  appleWebApp: { capable: true, title: "Southbound", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "CargoTribe", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

@@ -294,7 +294,7 @@ export function JobCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-3.5 p-4">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-2">
           <div className="min-w-0">
             <p className="text-xl font-bold leading-tight tracking-tight">{t(scope.summary)}</p>
             <p className="mt-1 text-sm text-muted-foreground">

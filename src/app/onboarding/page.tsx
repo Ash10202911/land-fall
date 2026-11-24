@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-10">
-      <p className="text-2xl font-semibold tracking-tight text-primary">{t("Southbound")}</p>
+      <p className="text-2xl font-semibold tracking-tight text-primary">CargoTribe</p>
       <h1 className="mt-6 text-xl font-semibold">{t("Tell us about your company")}</h1>
       <p className="mb-6 mt-1 text-sm text-muted-foreground">
         {t("Three quick details. An admin can verify your company later so you can award jobs.")}

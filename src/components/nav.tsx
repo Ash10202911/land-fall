@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Briefcase, FilePlus2, FileText, Inbox, User, type LucideIcon } from "lucide-react";
@@ -24,14 +25,9 @@ function isActive(pathname: string, href: string) {
 function Logo() {
   const t = useT();
   return (
-    <Link href="/jobs" className="flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight" aria-label={t("Southbound home")}>
-      <span
-        className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-sm font-extrabold text-primary-foreground shadow-card"
-        aria-hidden
-      >
-        S
-      </span>
-      <span className="hidden sm:inline">Southbound</span>
+    <Link href="/jobs" className="flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight" aria-label={t("CargoTribe home")}>
+      <Image src="/brand/cargotribe-icon.png" alt="" width={36} height={36} className="h-9 w-9 rounded-xl shadow-card" priority />
+      <span className="hidden sm:inline">CargoTribe</span>
     </Link>
   );
 }

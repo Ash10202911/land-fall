@@ -37,7 +37,7 @@ export default async function ProfilePage() {
         {website ? <p className="text-sm text-muted-foreground">{website}</p> : null}
         {company.trust_level !== "verified" ? (
           <p className="text-sm">
-            {t("Get verified to award jobs. An admin reviews companies by hand; contact the Southbound team to start.")}
+            {t("Get verified to award jobs. An admin reviews companies by hand; contact the CargoTribe team to start.")}
           </p>
         ) : null}
         <p className="text-sm text-muted-foreground">{t("Signed in as {email}", { email: me.email })}</p>

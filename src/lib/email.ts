@@ -4,7 +4,7 @@ import { translatorFor } from "@/lib/i18n/translator";
 /** `locale` is the recipient's language; it sets the footer. English when not given. */
 export type EmailMessage = { to: string; subject: string; text: string; locale?: Locale };
 
-export const EMAIL_SENDER_NAME = "Southbound";
+export const EMAIL_SENDER_NAME = "CargoTribe";
 export const EMAIL_FOOTER = `\n\n--\nSent by ${EMAIL_SENDER_NAME}. To stop these emails, reply STOP.`;
 
 /** Adds the standard footer: sender name and a "reply STOP" line. */

@@ -130,3 +130,15 @@ Written by Claude Code during `/build-core`.
 | - Decision: new companies can post straight away | noted | Per the founder: no approval hold. Spam is handled by Verified-only awarding, per-company limits and suspension |
 | - Needs for production | open | Apply 20261125000100_company_website.sql before the code goes live. Not done: sign-in email rate limits and a bot check (need a Turnstile or similar key) |
 | Checks | pass | lint, typecheck, build clean; npm test 148 passed; test:rls 119 passed; Playwright 13 passed |
+
+## CargoTribe: new name and landing page
+| Item | Status | Evidence / notes |
+|---|---|---|
+| Renamed Southbound to CargoTribe | done | Page titles, app manifest, sign-in, onboarding, nav, email sender name and footer. Logo and icons from the supplied artwork (app icons, favicon, maskable icon regenerated) |
+| Landing page is the sign-in page | done | /sign-in: headline, sign-in card up front, three trust facts, three real portal screens, agent and forwarder sections, closing call to action. Signed-in visitors still go straight to the portal |
+| Honest copy | noted | No statistics, testimonials or savings claims. Only things the product does today |
+| Real screenshots | done | public/marketing/*.png, captured from the app with demo data at phone size |
+| Found while building | fixed | On a phone, the job card's "Monthly" chip squeezed the heading into a narrow column; the chip now wraps below it |
+| Video scripts and shot lists | done as scripts | docs/MARKETING_SCRIPTS.md. The videos themselves are not recorded |
+| - Not done | open | The portal's own colours are still the earlier teal theme, not the logo blue; the page copy is English only (Chinese waits on the dictionary); NEXT_PUBLIC_APP_URL and the cargotribe.com.au domain are set in Vercel by the founder |
+| Checks | pass | lint, typecheck, build clean; npm test 148 passed; Playwright 14 passed (new landing test) |

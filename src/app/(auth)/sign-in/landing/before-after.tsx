@@ -6,7 +6,7 @@ import { Check, Paperclip, X } from "lucide-react";
 /** The pile of replies an agent chases today, against the same quotes laid out side by side. An illustration. */
 const PILE = [
   { text: "ok 1850 all in?? 📎", from: "WeChat", rot: "-rotate-2", pos: "left-0 top-2", tone: "bg-[#d9f4c8]" },
-  { text: "RE: RE: quote SZX-MEL (see attached .xlsx)", from: "Email", rot: "rotate-1", pos: "right-0 top-0", tone: "bg-white" },
+  { text: "RE: RE: quote for the container (see attached .xlsx)", from: "Email", rot: "rotate-1", pos: "right-0 top-0", tone: "bg-white" },
   { text: "USD 1,420 + local charges TBC", from: "Email", rot: "rotate-2", pos: "left-3 top-24", tone: "bg-white" },
   { text: "can do, will confirm customs later", from: "WhatsApp", rot: "-rotate-1", pos: "right-2 top-28", tone: "bg-[#d9f4c8]" },
   { text: "price valid? checking with the team", from: "Email", rot: "rotate-1", pos: "left-0 top-48", tone: "bg-white" },
@@ -17,7 +17,7 @@ export function BeforeAfter() {
   const [after, setAfter] = useState(false);
   return (
     <div>
-      <div role="group" aria-label="Compare the two ways" className="inline-flex rounded-full bg-white p-1 ring-1 ring-[#cfe3f3]">
+      <div role="group" aria-label="Compare the two ways" className="inline-flex rounded-full bg-white p-1 ring-1 ring-[#eadfce]">
         {[
           { label: "The usual way", value: false },
           { label: "On CargoTribe", value: true },
@@ -27,7 +27,7 @@ export function BeforeAfter() {
             aria-pressed={after === o.value}
             onClick={() => setAfter(o.value)}
             className={`min-h-11 rounded-full px-5 text-[15px] font-bold transition-colors focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[#3cb9fc] ${
-              after === o.value ? "bg-[#0c5a9c] text-white" : "text-[#0b2f57] hover:bg-[#e8f4fd]"
+              after === o.value ? "bg-[#0c5a9c] text-white" : "text-[#0b2f57] hover:bg-[#fff1dc]"
             }`}
           >
             {o.label}
@@ -41,7 +41,7 @@ export function BeforeAfter() {
           className={`col-start-1 row-start-1 transition-all duration-500 ${after ? "pointer-events-none translate-y-3 opacity-0" : "opacity-100"}`}
           aria-hidden={after}
         >
-          <div className="relative mx-auto h-[19rem] w-full max-w-xl rounded-3xl bg-[#e8eef4] p-4 sm:h-[17rem]">
+          <div className="relative mx-auto h-[19rem] w-full max-w-xl rounded-3xl bg-[#f3e6d2] p-4 sm:h-[17rem]">
             {PILE.map((m) => (
               <div
                 key={m.text}
@@ -52,7 +52,7 @@ export function BeforeAfter() {
               </div>
             ))}
           </div>
-          <p className="mx-auto mt-4 max-w-xl font-hand text-2xl text-[#d9731a]">Which one is cheapest? Hard to say. Different formats, different currencies, half of it in chat.</p>
+          <p className="mx-auto mt-4 max-w-xl text-lg font-semibold text-[#8a4a0b]">Which one is cheapest? Hard to say. Different formats, different currencies, half of it in chat.</p>
         </div>
 
         <div
@@ -93,10 +93,9 @@ export function BeforeAfter() {
               <p className="mt-2 text-[12px] font-semibold text-[#a15c07]">Does not include: Delivery</p>
             </div>
           </div>
-          <p className="mx-auto mt-4 max-w-xl font-hand text-2xl text-[#d9731a]">Same shape, side by side. You can see the gap straight away.</p>
+          <p className="mx-auto mt-4 max-w-xl text-lg font-semibold text-[#8a4a0b]">Same shape, side by side. You can see the gap straight away.</p>
         </div>
       </div>
-      <p className="mt-2 text-sm text-[#4a6785]">An illustration with made-up messages and prices.</p>
     </div>
   );
 }

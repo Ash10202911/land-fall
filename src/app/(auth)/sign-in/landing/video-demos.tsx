@@ -36,7 +36,7 @@ const VIDEOS = [
 /** A phone-shaped frame around a screen recording. */
 function Phone({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`overflow-hidden rounded-[2.2rem] border-[7px] border-[#0b2f57] bg-[#0b2f57] shadow-[0_30px_60px_-24px_rgba(11,47,87,0.65)] ${className}`}>
+    <div className={`overflow-hidden rounded-[2.2rem] border-[5px] border-[#1d2f4d] bg-[#1d2f4d] shadow-[0_28px_50px_-26px_rgba(70,45,10,0.55)] ${className}`}>
       {children}
     </div>
   );
@@ -58,7 +58,7 @@ export function HeroVideo() {
     return () => window.removeEventListener("load", start);
   }, []);
   return (
-    <Phone className="mx-auto w-[min(250px,70vw)] rotate-[2deg]">
+    <Phone className="mx-auto w-[min(250px,70vw)]">
       <video
         ref={ref}
         className="block h-auto w-full bg-[#0b2f57]"
@@ -105,7 +105,7 @@ export function VideoDemos() {
                 setStarted(true);
               }}
               className={`min-h-11 rounded-full px-5 text-[15px] font-bold transition-colors focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[#3cb9fc] ${
-                i === active ? "bg-[#0c5a9c] text-white" : "bg-white text-[#0b2f57] ring-1 ring-[#cfe3f3] hover:bg-[#e8f4fd]"
+                i === active ? "bg-[#0c5a9c] text-white" : "bg-white text-[#0b2f57] ring-1 ring-[#eadfce] hover:bg-[#fff1dc]"
               }`}
             >
               {v.tab}
@@ -113,10 +113,9 @@ export function VideoDemos() {
           ))}
         </div>
         <div id="video-panel" role="tabpanel" aria-labelledby={`video-tab-${current.id}`} className="mt-7 max-w-[34rem]">
-          <p className="font-hand text-2xl text-[#d9731a]">{current.who}</p>
+          <p className="text-sm font-bold text-[#c2620f]">{current.who}</p>
           <h3 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{current.title}</h3>
-          <p className="mt-3 text-lg leading-relaxed text-[#4a6785]">{current.body}</p>
-          <p className="mt-4 text-sm text-[#4a6785]">A real recording of the portal, with demo data. No sound needed.</p>
+          <p className="mt-3 text-lg leading-relaxed text-[#5a6f86]">{current.body}</p>
         </div>
       </div>
 

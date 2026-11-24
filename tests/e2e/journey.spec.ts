@@ -45,7 +45,7 @@ test("agent posts, forwarders quote, admin verifies, agent awards, only winner s
   const visitor = await newUser(browser, "visitor");
   await visitor.page.goto("/jobs");
   await expect(visitor.page).toHaveURL(/\/sign-in/);
-  await expect(visitor.page.getByRole("button", { name: "Email me a sign-in link" })).toBeVisible();
+  await expect(visitor.page.getByRole("button", { name: "Join the tribe" }).first()).toBeVisible();
   await visitor.context.close();
 
   // ---- Agent signs in, onboards (company starts Basic) and posts a job on a phone

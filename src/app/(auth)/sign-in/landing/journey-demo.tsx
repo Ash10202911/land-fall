@@ -10,15 +10,15 @@ import { BadgeCheck, Bell, Check, Lock, Phone, Send, Trophy, X } from "lucide-re
 const STEPS = [
   {
     short: "Mei posts a job",
-    who: "Mei, shipping agent in Shenzhen",
+    who: "Mei, a shipping agent",
     title: "Mei has a container of furniture to move.",
     text: "She picks the route, says what is in the box and what she wants priced. About 30 seconds later it is on the board.",
   },
   {
     short: "Dan hears about it",
-    who: "Dan, forwarder in Melbourne",
+    who: "Dan, a forwarder",
     title: "Dan gets an email the moment it goes up.",
-    text: "He watches the Shenzhen to Melbourne lane. His rate card already knows his port charges, so the quote opens filled in.",
+    text: "He watches the lane this job is on. His rate card already knows his port charges, so the quote opens filled in.",
   },
   {
     short: "Quotes arrive, sealed",
@@ -58,7 +58,7 @@ function Screen({ step }: { step: number }) {
       <div className="space-y-3">
         <p className="text-[11px] font-bold text-[#0c5a9c]">New request</p>
         <div className="space-y-2 rounded-2xl border border-[#d6e8f6] p-3 text-[13px]">
-          <p className="font-bold">Shenzhen to Melbourne</p>
+          <p className="font-bold">Origin port to destination port</p>
           <p className="text-[#4a6785]">Sea, full container · 2 × 40HC</p>
           <p className="rounded-lg bg-[#f4faff] px-2 py-1.5">Flat-pack timber furniture, palletised</p>
           <div className="flex gap-1.5 pt-1">{["Dest.", "Customs", "Delivery"].map((l) => chip(l, true))}</div>
@@ -77,7 +77,7 @@ function Screen({ step }: { step: number }) {
           <Bell className="mt-0.5 h-5 w-5 shrink-0 text-[#7fd0ff]" aria-hidden />
           <div className="text-[13px]">
             <p className="font-bold">New job on your lane</p>
-            <p className="text-[#cfe9ff]">Shenzhen to Melbourne · 2 × 40HC</p>
+            <p className="text-[#cfe9ff]">Sea, full container · 2 × 40HC</p>
           </div>
         </div>
         <div className="space-y-1.5 rounded-2xl border border-[#cfe9ff] bg-[#e9f6ff] p-3 text-[13px]">
@@ -183,7 +183,7 @@ export function JourneyDemo() {
                 setStep(i);
               }}
               className={`min-h-11 rounded-full px-4 text-[14px] font-bold transition-colors focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[#3cb9fc] ${
-                i === step ? "bg-[#0c5a9c] text-white" : "bg-white text-[#0b2f57] ring-1 ring-[#cfe3f3] hover:bg-[#e8f4fd]"
+                i === step ? "bg-[#0c5a9c] text-white" : "bg-white text-[#0b2f57] ring-1 ring-[#eadfce] hover:bg-[#fff1dc]"
               }`}
             >
               {t.short}
@@ -191,14 +191,13 @@ export function JourneyDemo() {
           ))}
         </div>
         <div className="mt-7 min-h-[11rem] max-w-[34rem]" aria-live="polite">
-          <p className="font-hand text-2xl text-[#d9731a]">{s.who}</p>
+          <p className="text-sm font-bold text-[#c2620f]">{s.who}</p>
           <h3 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{s.title}</h3>
-          <p className="mt-3 text-lg leading-relaxed text-[#4a6785]">{s.text}</p>
+          <p className="mt-3 text-lg leading-relaxed text-[#5a6f86]">{s.text}</p>
         </div>
-        <p className="mt-3 text-sm text-[#4a6785]">An example, with made-up people and prices. Tap any step.</p>
       </div>
 
-      <div className="mx-auto w-[min(290px,82vw)] overflow-hidden rounded-[2.2rem] border-[7px] border-[#0b2f57] bg-white shadow-[0_30px_60px_-24px_rgba(11,47,87,0.65)]">
+      <div className="mx-auto w-[min(290px,82vw)] overflow-hidden rounded-[2.2rem] border-[5px] border-[#1d2f4d] bg-white shadow-[0_28px_50px_-26px_rgba(70,45,10,0.55)]">
         <div className="flex items-center justify-between bg-[#0b2f57] px-4 py-2 text-[11px] font-bold text-white">
           <span>CargoTribe</span>
           <span className="text-[#7fd0ff]">{step + 1} of {STEPS.length}</span>

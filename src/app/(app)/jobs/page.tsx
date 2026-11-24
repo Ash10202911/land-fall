@@ -128,7 +128,7 @@ async function RequesterView({ company, now }: { company: Company; now: Date }) 
         {mine.length === 0 ? (
           <RequesterWelcome />
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 [&>li]:min-w-0">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
             {mine.map(({ job, quoteCount }) => (
               <li key={job.id}>
                 <JobCard job={job} now={now} quoteCount={quoteCount} />
@@ -246,7 +246,7 @@ async function QuoterView({
           body={filtered ? "Try a different destination or mode." : "New jobs from other companies appear here, newest first."}
         />
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 [&>li]:min-w-0">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 [&>li]:min-w-0">
           {jobs.map(({ job, isNew }) => (
             <li key={job.id}>
               <JobCard job={job} now={now} isNew={isNew} band={bands.get(job.id)} />

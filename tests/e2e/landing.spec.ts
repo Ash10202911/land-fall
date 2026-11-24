@@ -19,10 +19,18 @@ test("the sign-in page is the CargoTribe landing page: sign-in up front, and the
   await page.getByRole("tab", { name: "Awarded. Now talk." }).click();
   await expect(page.getByText("Dan Whitfield")).toBeVisible();
 
-  // The mess it replaces: flip to the tidy version.
-  await page.getByRole("button", { name: "On CargoTribe" }).scrollIntoViewIfNeeded();
-  await page.getByRole("button", { name: "On CargoTribe" }).click();
+  // The mess it replaces: a real-looking inbox next to the same quotes laid out side by side.
+  await page.getByText("Inbox · 47 unread").scrollIntoViewIfNeeded();
+  await expect(page.getByText("Inbox · 47 unread")).toBeVisible();
   await expect(page.getByText("Does not include: Delivery").first()).toBeVisible();
+
+  // Quoting is quick, at a desk first and on a phone too: tap through the three steps.
+  await page.getByRole("tab", { name: "Check it" }).scrollIntoViewIfNeeded();
+  await page.getByRole("tab", { name: "Check it" }).click();
+  await expect(page.getByText("Your quote is already filled in.")).toBeVisible();
+  await page.getByRole("tab", { name: "Send it" }).click();
+  await expect(page.getByText("One click, and it is sent.")).toBeVisible();
+  await expect(page.getByText("Quote sent").first()).toBeVisible();
 
   // Real recordings: choose one, it loads with its poster and plays on request.
   await page.getByRole("tab", { name: "Quote fast" }).scrollIntoViewIfNeeded();

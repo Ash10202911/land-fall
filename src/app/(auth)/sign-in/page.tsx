@@ -9,6 +9,7 @@ import { BeforeAfter } from "./landing/before-after";
 import { HeroCollage } from "./landing/hero-collage";
 import { JourneyDemo } from "./landing/journey-demo";
 import { LanePicker } from "./landing/lane-picker";
+import { OnTheGo } from "./landing/on-the-go";
 import { VideoDemos } from "./landing/video-demos";
 
 export const metadata = {
@@ -132,13 +133,18 @@ export default async function SignInPage({
       {/* The mess it replaces */}
       <section className="bg-[#fdf1e1]">
         <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
-          <Heading sub="Quotes arrive in whatever shape the sender likes. Flip the switch and see the same prices laid out properly.">
+          <Heading sub="Quotes arrive in whatever shape the sender likes. On CargoTribe they all arrive the same way, laid out side by side.">
             Quotes shouldn&apos;t live in your inbox
           </Heading>
           <div className="mt-10">
             <BeforeAfter />
           </div>
         </div>
+      </section>
+
+      {/* Quoting is quick: at a desk first, and the phone as a bonus */}
+      <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+        <OnTheGo />
       </section>
 
       {/* Real recordings with zoom */}
